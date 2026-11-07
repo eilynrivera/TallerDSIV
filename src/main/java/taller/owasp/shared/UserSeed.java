@@ -4,7 +4,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import taller.owasp.domain.User;
-import taller.owasp.domain.UserRepository;
+import taller.owasp.repository.UserRepository;
 
 /**
  * Carga de usuarios de prueba.

@@ -9,9 +9,9 @@ import org.springframework.stereotype.Component;
 import taller.owasp.domain.Comment;
 import taller.owasp.domain.Product;
 import taller.owasp.domain.SecretoCtf;
-import taller.owasp.domain.CommentRepository;
-import taller.owasp.domain.ProductRepository;
-import taller.owasp.domain.SecretoCtfRepository;
+import taller.owasp.repository.CommentRepository;
+import taller.owasp.repository.ProductRepository;
+import taller.owasp.repository.SecretoCtfRepository;
 
 // Llena la base H2 en memoria cada vez que arranca el servidor.
 // Reiniciar el servidor equivale a restaurar la base.
