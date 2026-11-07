@@ -6,4 +6,7 @@ package taller.owasp.shared;
  * sesion lee este atributo. Lo escriben los controladores de login (M1 / M2).
  */
 public record SessionUser(Long id, String username, String role) {
+
+    /** Nombre del atributo en la HttpSession. Usarlo siempre en vez de un literal. */
+    public static final String ATRIBUTO_SESION = "user";
 }

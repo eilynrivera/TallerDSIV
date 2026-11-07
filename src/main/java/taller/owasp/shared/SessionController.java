@@ -23,13 +23,13 @@ import jakarta.servlet.http.HttpSession;
 @Profile({"vulnerable", "patched"})
 public class SessionController {
 
-    static final String ATRIBUTO_USUARIO = "user";
-
     @GetMapping("/api/profile")
     public ResponseEntity<?> perfil(HttpServletRequest request) {
 
         HttpSession sesion = request.getSession(false);
-        Object usuario = (sesion != null) ? sesion.getAttribute(ATRIBUTO_USUARIO) : null;
+        Object usuario = (sesion != null)
+                ? sesion.getAttribute(SessionUser.ATRIBUTO_SESION)
+                : null;
 
         if (usuario == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
