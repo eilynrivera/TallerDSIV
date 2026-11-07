@@ -13,7 +13,11 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/corregido")
-@Profile("corregido")
+// NOTA (adaptacion a la convencion del plan - Jose/Persona C):
+// perfil "corregido" -> "patched" (antes: @Profile("corregido")).
+// PENDIENTE DE EQUIPO (no lo cambie para no romper tus herramientas): el plan
+// usa POST /api/login, no /api/corregido/login. Hay que acordar la ruta.
+@Profile("patched")
 public class LoginSeguroController {
 
     private final JdbcTemplate jdbcTemplate;
