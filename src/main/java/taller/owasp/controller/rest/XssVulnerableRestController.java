@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import taller.owasp.controller.rest.dto.ComentarioRequest;
 import taller.owasp.entity.Comment;
 import taller.owasp.service.CommentService;
 
@@ -35,4 +34,7 @@ public class XssVulnerableRestController {
         // ERROR A PROPÓSITO: se guarda el contenido tal cual, con <script>, <img onerror>, etc.
         return commentService.guardar(datos.author(), datos.content());
     }
+
+    // Cuerpo de POST /api/comments: {"author": "...", "content": "..."}
+    public record ComentarioRequest(String author, String content) {}
 }

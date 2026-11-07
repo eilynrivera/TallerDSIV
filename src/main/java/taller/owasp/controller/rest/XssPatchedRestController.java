@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import taller.owasp.controller.rest.dto.ComentarioRequest;
 import taller.owasp.entity.Comment;
 import taller.owasp.service.CommentService;
 
@@ -53,4 +52,7 @@ public class XssPatchedRestController {
         String autor = SIN_ETIQUETAS.sanitize(datos.author());
         return ResponseEntity.ok(commentService.guardar(autor, contenido));
     }
+
+    // Cuerpo de POST /api/comments: {"author": "...", "content": "..."}
+    public record ComentarioRequest(String author, String content) {}
 }

@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.servlet.http.HttpSession;
-import taller.owasp.controller.rest.dto.LoginRequest;
 import taller.owasp.entity.User;
 import taller.owasp.service.ProductService;
 import taller.owasp.service.UserService;
@@ -64,4 +63,7 @@ public class SqliVulnerableRestController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
     }
+
+    // Cuerpo de POST /api/login: {"username": "...", "password": "..."}
+    public record LoginRequest(String username, String password) {}
 }

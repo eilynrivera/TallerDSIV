@@ -19,8 +19,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.servlet.http.HttpSession;
-import taller.owasp.controller.rest.dto.LoginRequest;
-import taller.owasp.controller.rest.dto.LoginResponse;
 import taller.owasp.entity.Product;
 import taller.owasp.entity.User;
 import taller.owasp.service.ProductService;
@@ -77,4 +75,10 @@ public class SqliPatchedRestController {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body("Ocurrió un error. Intenta de nuevo.");
     }
+
+    // Cuerpo de POST /api/login: {"username": "...", "password": "..."}
+    public record LoginRequest(String username, String password) {}
+
+    // Respuesta del login seguro (M2): solo lo necesario, nunca la contrasena.
+    public record LoginResponse(Long id, String username, String role) {}
 }
