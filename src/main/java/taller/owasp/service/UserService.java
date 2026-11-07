@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import taller.owasp.domain.User;
-import taller.owasp.domain.UserRepository;
+import taller.owasp.repository.UserRepository;
 
 @Service
 @Transactional

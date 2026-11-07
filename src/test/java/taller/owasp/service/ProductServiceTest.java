@@ -18,9 +18,9 @@ import jakarta.persistence.PersistenceException;
 import taller.owasp.domain.Product;
 import taller.owasp.domain.SecretoCtf;
 import taller.owasp.domain.User;
-import taller.owasp.domain.ProductRepository;
-import taller.owasp.domain.SecretoCtfRepository;
-import taller.owasp.domain.UserRepository;
+import taller.owasp.repository.ProductRepository;
+import taller.owasp.repository.SecretoCtfRepository;
+import taller.owasp.repository.UserRepository;
 
 // @DataJpaTest levanta solo JPA + una base H2 en memoria vacia (sin Seed ni controladores).
 // Cada test corre en una transaccion que se deshace al terminar.

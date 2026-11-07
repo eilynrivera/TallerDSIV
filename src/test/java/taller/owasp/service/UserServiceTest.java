@@ -13,7 +13,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
 
 import taller.owasp.domain.User;
-import taller.owasp.domain.UserRepository;
+import taller.owasp.repository.UserRepository;
 
 @DataJpaTest
 @Import(UserService.class)

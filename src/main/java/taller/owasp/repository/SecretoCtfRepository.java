@@ -1,4 +1,4 @@
-package taller.owasp.domain;
+package taller.owasp.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
