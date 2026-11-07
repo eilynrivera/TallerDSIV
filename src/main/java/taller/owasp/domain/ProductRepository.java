@@ -1,10 +1,10 @@
-package taller.owasp.repository;
+package taller.owasp.domain;
 
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import taller.owasp.entity.Product;
+import taller.owasp.domain.Product;
 
 public interface ProductRepository extends JpaRepository<Product, Long>{
     List<Product> findByNameContainingIgnoreCase(String name);

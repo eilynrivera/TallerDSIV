@@ -5,8 +5,8 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 import jakarta.transaction.Transactional;
-import taller.owasp.entity.Comment;
-import taller.owasp.repository.CommentRepository;
+import taller.owasp.domain.Comment;
+import taller.owasp.domain.CommentRepository;
 
 @Service
 @Transactional
