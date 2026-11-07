@@ -35,3 +35,7 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Archivos de pruebas locales ###
+# Cookie jar que genera curl al probar el login
+cookies.txt
