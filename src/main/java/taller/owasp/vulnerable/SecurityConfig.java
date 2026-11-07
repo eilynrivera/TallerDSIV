@@ -1,22 +1,23 @@
 package taller.owasp.vulnerable;
 
+import java.util.List;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 /**
  * SecurityConfig del perfil VULNERABLE (puerto 3000).
  *
- * Base del taller: Spring Security deja pasar todo (anyRequest().permitAll()),
- * sin login de formulario ni httpBasic ni logout por defecto; la sesion la maneja
- * la app a mano (atributo "user" en la HttpSession). CSRF se deja desactivado para
- * no romper los POST de login/comentarios. Las cabeceras de seguridad se desactivan
- * aqui a proposito: esta es la version insegura.
- *
- * Los bloques marcados son los puntos donde cada modulo ajusta su configuracion.
+ * Spring Security deja pasar todo; la sesion la maneja la app (atributo "user").
+ * CSRF desactivado, cabeceras de seguridad apagadas y CORS permisivo: esta es la
+ * version insegura, a proposito.
  */
 @Configuration
 @EnableWebSecurity
@@ -35,18 +36,28 @@ public class SecurityConfig {
                 // --- CSRF --- (M5 / C8: en vulnerable va desactivado)
                 .csrf(csrf -> csrf.disable())
 
-                // --- headers --- (M4 / C6: cabeceras de seguridad apagadas en la
-                // version insegura; ademas frameOptions off para que cargue la consola H2)
-                .headers(headers -> headers.frameOptions(frame -> frame.disable()))
+                // --- CORS --- (M4 / C6): refleja CUALQUIER origen y permite credenciales,
+                // asi que un sitio ajeno (127.0.0.1:4000) puede leer datos con la sesion
+                // de la victima.
+                .cors(cors -> cors.configurationSource(corsPermisivo()))
 
-                // --- CORS --- (M4 / C6: bean CorsConfigurationSource permisivo, se
-                // agrega al llegar a ese modulo)
-                // http.cors(cors -> cors.configurationSource(...));
-
-                // --- sesion/cookies --- (M4/M5: SameSite=None se fija por propiedades
-                // y/o un CookieSerializer cuando se trabaje CORS/CSRF)
-                ;
+                // --- headers --- (M4 / C6): todas las cabeceras de seguridad apagadas.
+                // Esto tambien quita X-Frame-Options, asi que la consola H2 (frames) carga.
+                .headers(headers -> headers.disable());
 
         return http.build();
+    }
+
+    // CORS que refleja el origen solicitante (allowedOriginPatterns + credenciales).
+    private CorsConfigurationSource corsPermisivo() {
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowedOriginPatterns(List.of("*"));
+        config.setAllowedMethods(List.of("*"));
+        config.setAllowedHeaders(List.of("*"));
+        config.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
     }
 }

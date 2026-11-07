@@ -1,5 +1,7 @@
 package taller.owasp.patched;
 
+import java.util.List;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -10,29 +12,25 @@ import org.springframework.security.web.header.writers.DelegatingRequestMatcherH
 import org.springframework.security.web.header.writers.StaticHeadersWriter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 /**
  * SecurityConfig del perfil PATCHED (puerto 3001).
  *
- * Mismo esqueleto que la version vulnerable (permitAll, sin formLogin/httpBasic/logout,
- * sesion a mano). Aqui es donde se endurece la configuracion al avanzar los modulos:
- *
- *  - M3 / A: la CSP se agrega en el bloque "headers" con headers.defaultsDisabled()
- *    + contentSecurityPolicy(...). Avisar a C antes de tocar este archivo.
- *  - M4 / C7: se quita defaultsDisabled() para activar todas las cabeceras y se deja
- *    la CSP; el CORS pasa a lista explicita (solo http://localhost:3001).
- *  - M5 / C9: se activa CSRF SOLO para /api/account/** (si se activa global rompe
- *    login y comentarios).
- *
- * Por ahora el baseline deja todo pasar y CSRF desactivado para no romper los .http.
+ *  - M3 / A: CSP que solo permite recursos del propio origen.
+ *  - M4 / C7: CORS restringido a una lista explicita (solo la propia tienda) y
+ *    todas las cabeceras de seguridad por defecto activas (ya no defaultsDisabled()),
+ *    conservando la CSP. frameOptions queda en sameOrigin para no romper la consola H2.
+ *  - M5 / C9: CSRF se reactivara solo para /api/account/**.
  */
 @Configuration
 @EnableWebSecurity
 @Profile("patched")
 public class SecurityConfig {
 
-    // M3 capa 3 (A): solo se ejecutan scripts servidos por la propia app; un
-    // <img onerror=...> o un <script> inyectado en un comentario no corre.
+    // M3 capa 3 (A): solo se ejecutan scripts servidos por la propia app.
     private static final String CSP = "default-src 'self'; script-src 'self'; style-src 'self'; "
                                     + "img-src 'self'; object-src 'none'";
 
@@ -48,22 +46,32 @@ public class SecurityConfig {
                 // --- CSRF --- (M5 / C9: reactivar solo para /api/account/**)
                 .csrf(csrf -> csrf.disable())
 
-                // --- headers --- (M3 / A: solo la CSP. M4 / C7: quitar defaultsDisabled()
-                // para activar el resto de cabeceras, dejando la CSP.)
-                // La CSP no se aplica a /h2-console/** porque la consola H2 (M2) usa
-                // JavaScript en linea y dejaria de funcionar.
+                // --- CORS --- (M4 / C7): lista explicita; el sitio atacante (4000) no
+                // esta permitido, asi que el navegador bloquea la lectura de la respuesta.
+                .cors(cors -> cors.configurationSource(corsRestringido()))
+
+                // --- headers --- (M4 / C7): cabeceras por defecto activas + CSP (M3).
+                // La CSP no se aplica a /h2-console/** (la consola usa JS en linea).
+                // frameOptions=sameOrigin para que la consola H2 (M2) siga cargando.
                 .headers(headers -> headers
-                        .defaultsDisabled()
+                        .frameOptions(frame -> frame.sameOrigin())
                         .addHeaderWriter(new DelegatingRequestMatcherHeaderWriter(
                                 new NegatedRequestMatcher(new AntPathRequestMatcher("/h2-console/**")),
-                                new StaticHeadersWriter("Content-Security-Policy", CSP))))
-
-                // --- CORS --- (M4 / C7: lista explicita de origenes)
-                // http.cors(cors -> cors.configurationSource(...));
-
-                // --- sesion/cookies --- (M5: SameSite=Lax en la version segura)
-                ;
+                                new StaticHeadersWriter("Content-Security-Policy", CSP))));
 
         return http.build();
+    }
+
+    // CORS seguro: solo el propio origen de la tienda; nada de reflejar cualquiera.
+    private CorsConfigurationSource corsRestringido() {
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowedOrigins(List.of("http://localhost:3001", "http://127.0.0.1:3001"));
+        config.setAllowedMethods(List.of("GET", "POST"));
+        config.setAllowedHeaders(List.of("*"));
+        config.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
     }
 }
