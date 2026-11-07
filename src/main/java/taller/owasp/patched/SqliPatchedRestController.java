@@ -1,4 +1,4 @@
-package taller.owasp.controller.rest;
+package taller.owasp.patched;
 
 import java.util.List;
 import java.util.Map;
@@ -19,8 +19,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.servlet.http.HttpSession;
-import taller.owasp.entity.Product;
-import taller.owasp.entity.User;
+import taller.owasp.domain.Product;
+import taller.owasp.domain.User;
 import taller.owasp.service.ProductService;
 import taller.owasp.service.UserService;
 import taller.owasp.shared.SessionUser;

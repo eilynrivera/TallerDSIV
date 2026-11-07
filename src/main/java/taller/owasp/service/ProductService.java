@@ -9,8 +9,8 @@ import org.springframework.stereotype.Service;
 
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
-import taller.owasp.entity.Product;
-import taller.owasp.repository.ProductRepository;
+import taller.owasp.domain.Product;
+import taller.owasp.domain.ProductRepository;
 
 @Service
 @Transactional

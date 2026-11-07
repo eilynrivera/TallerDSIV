@@ -1,4 +1,4 @@
-package taller.owasp.controller.rest;
+package taller.owasp.vulnerable;
 
 import java.util.List;
 
@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import taller.owasp.entity.Comment;
+import taller.owasp.domain.Comment;
 import taller.owasp.service.CommentService;
 
 // M3 VULNERABLE: los comentarios se guardan sin filtrar (XSS almacenado).

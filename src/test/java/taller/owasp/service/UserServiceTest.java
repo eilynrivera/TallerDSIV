@@ -12,8 +12,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
 
-import taller.owasp.entity.User;
-import taller.owasp.repository.UserRepository;
+import taller.owasp.domain.User;
+import taller.owasp.domain.UserRepository;
 
 @DataJpaTest
 @Import(UserService.class)

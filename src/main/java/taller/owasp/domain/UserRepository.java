@@ -1,10 +1,10 @@
-package taller.owasp.repository;
+package taller.owasp.domain;
 
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import taller.owasp.entity.User;
+import taller.owasp.domain.User;
 
 // username es unico (ver User), por eso las busquedas devuelven Optional.
 public interface UserRepository extends JpaRepository<User, Long> {

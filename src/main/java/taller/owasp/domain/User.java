@@ -1,4 +1,4 @@
-package taller.owasp.entity;
+package taller.owasp.domain;
 
 import jakarta.persistence.*;
 

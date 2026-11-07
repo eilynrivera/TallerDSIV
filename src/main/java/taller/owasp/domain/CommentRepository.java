@@ -1,10 +1,10 @@
-package taller.owasp.repository;
+package taller.owasp.domain;
 
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import taller.owasp.entity.Comment;
+import taller.owasp.domain.Comment;
 
 public interface CommentRepository extends JpaRepository<Comment, Long>{
     List<Comment> findAllByOrderByIdDesc();

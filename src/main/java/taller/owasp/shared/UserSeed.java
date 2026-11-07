@@ -3,8 +3,8 @@ package taller.owasp.shared;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 
-import taller.owasp.entity.User;
-import taller.owasp.repository.UserRepository;
+import taller.owasp.domain.User;
+import taller.owasp.domain.UserRepository;
 
 /**
  * Carga de usuarios de prueba.
