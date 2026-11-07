@@ -1,6 +1,8 @@
-
 package taller.owasp.demo;
 
+import javax.sql.DataSource;
+
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -9,8 +11,8 @@ import org.springframework.jdbc.datasource.DriverManagerDataSource;
 @Configuration
 public class DemoDatabaseConfig {
 
-    @Bean(name = "demoJdbcTemplate")
-    public JdbcTemplate demoJdbcTemplate() {
+    @Bean(name = "demoDataSource")
+    public DataSource demoDataSource() {
 
         DriverManagerDataSource dataSource = new DriverManagerDataSource();
 
@@ -20,6 +22,13 @@ public class DemoDatabaseConfig {
         );
         dataSource.setUsername("sa");
         dataSource.setPassword("");
+
+        return dataSource;
+    }
+
+    @Bean(name = "demoJdbcTemplate")
+    public JdbcTemplate demoJdbcTemplate(
+            @Qualifier("demoDataSource") DataSource dataSource) {
 
         return new JdbcTemplate(dataSource);
     }
