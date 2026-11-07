@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tienda del Taller — VERSIÓN VULNERABLE</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header class="banner">VERSIÓN VULNERABLE &nbsp;·&nbsp; http://localhost:3000</header>
+
+    <main>
+        <!-- Login (M1 / M2) -->
+        <section class="card">
+            <h2>Iniciar sesión</h2>
+            <form id="form-login" autocomplete="off">
+                <input id="login-user" type="text" placeholder="Usuario" required>
+                <input id="login-pass" type="password" placeholder="Contraseña" required>
+                <button type="submit">Entrar</button>
+            </form>
+            <p class="hint">Prueba: <code>admin / admin123</code>. Inyección: usuario <code>admin' --</code></p>
+            <pre id="login-result" class="result"></pre>
+        </section>
+
+        <!-- Perfil / sesión -->
+        <section class="card">
+            <h2>Sesión</h2>
+            <button id="btn-profile" type="button">Ver perfil</button>
+            <button id="btn-logout" type="button">Cerrar sesión</button>
+            <pre id="profile-result" class="result"></pre>
+        </section>
+
+        <!-- Buscador de productos (M1) -->
+        <section class="card">
+            <h2>Productos</h2>
+            <form id="form-search" autocomplete="off">
+                <input id="search-q" type="text" placeholder="Buscar producto…">
+                <button type="submit">Buscar</button>
+            </form>
+            <p class="hint">Inyección: una comilla <code>'</code> o <code>' UNION SELECT id, username, password, 0 FROM users --</code></p>
+            <div id="products"></div>
+            <pre id="products-error" class="result error"></pre>
+        </section>
+
+        <!-- Comentarios (M3 XSS) -->
+        <section class="card">
+            <h2>Comentarios</h2>
+            <form id="form-comment" autocomplete="off">
+                <input id="comment-author" type="text" placeholder="Tu nombre" required>
+                <input id="comment-content" type="text" placeholder="Tu comentario">
+                <button type="submit">Comentar</button>
+            </form>
+            <p class="hint">XSS: <code>&lt;img src=x onerror=alert(document.cookie)&gt;</code></p>
+            <div id="comments"></div>
+        </section>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,117 @@
+// Frontend VULNERABLE (perfil vulnerable, puerto 3000).
+// Todo el JS va aqui (nada en linea), pero los comentarios se pintan con
+// innerHTML a proposito: esa es la vulnerabilidad de M3 (XSS almacenado).
+
+const api = (path, options) =>
+    fetch(path, { credentials: "same-origin", ...options });
+
+const json = (body) => ({
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+});
+
+// ---------- Login (M1 / M2) ----------
+async function login(event) {
+    event.preventDefault();
+    const salida = document.getElementById("login-result");
+    const resp = await api("/api/login", {
+        method: "POST",
+        ...json({
+            username: document.getElementById("login-user").value,
+            password: document.getElementById("login-pass").value,
+        }),
+    });
+    const texto = await resp.text();
+    // Se muestra la respuesta cruda: en vulnerable incluye la contrasena (fuga de M2).
+    salida.textContent = "HTTP " + resp.status + "\n" + texto;
+}
+
+// ---------- Perfil / sesion ----------
+async function verPerfil() {
+    const salida = document.getElementById("profile-result");
+    const resp = await api("/api/profile");
+    salida.textContent = resp.status === 200
+        ? await resp.text()
+        : "Sin sesion (HTTP " + resp.status + ")";
+}
+
+async function cerrarSesion() {
+    await api("/api/logout", { method: "POST" });
+    document.getElementById("profile-result").textContent = "Sesion cerrada.";
+}
+
+// ---------- Productos (M1 SQLi) ----------
+async function buscar(event) {
+    event.preventDefault();
+    const q = document.getElementById("search-q").value;
+    const cont = document.getElementById("products");
+    const err = document.getElementById("products-error");
+    cont.innerHTML = "";
+    err.textContent = "";
+
+    const resp = await api("/api/products?q=" + encodeURIComponent(q));
+    if (!resp.ok) {
+        // En vulnerable el error de SQL se muestra tal cual (fuga de M1).
+        err.textContent = "HTTP " + resp.status + "\n" + (await resp.text());
+        return;
+    }
+    const productos = await resp.json();
+    if (productos.length === 0) {
+        cont.textContent = "Sin resultados.";
+        return;
+    }
+    for (const p of productos) {
+        const div = document.createElement("div");
+        div.className = "product";
+        const nombre = document.createElement("span");
+        nombre.className = "name";
+        nombre.textContent = p.name;
+        const desc = document.createElement("span");
+        desc.textContent = " — " + (p.description ?? "");
+        const precio = document.createElement("span");
+        precio.className = "price";
+        precio.textContent = "  $" + p.price;
+        div.append(nombre, desc, precio);
+        cont.appendChild(div);
+    }
+}
+
+// ---------- Comentarios (M3 XSS) ----------
+async function cargarComentarios() {
+    const cont = document.getElementById("comments");
+    const resp = await api("/api/comments");
+    const comentarios = await resp.json();
+    cont.innerHTML = "";
+    for (const c of comentarios) {
+        const div = document.createElement("div");
+        div.className = "comment";
+        // VULNERABILIDAD (M3): el contenido se inserta con innerHTML sin escapar,
+        // asi que un <img onerror=...> o <script> guardado se ejecuta.
+        div.innerHTML =
+            '<span class="author">' + c.author + "</span>: " + c.content;
+        cont.appendChild(div);
+    }
+}
+
+async function comentar(event) {
+    event.preventDefault();
+    await api("/api/comments", {
+        method: "POST",
+        ...json({
+            author: document.getElementById("comment-author").value,
+            content: document.getElementById("comment-content").value,
+        }),
+    });
+    document.getElementById("comment-content").value = "";
+    cargarComentarios();
+}
+
+// ---------- Conexion de eventos ----------
+document.addEventListener("DOMContentLoaded", () => {
+    document.getElementById("form-login").addEventListener("submit", login);
+    document.getElementById("btn-profile").addEventListener("click", verPerfil);
+    document.getElementById("btn-logout").addEventListener("click", cerrarSesion);
+    document.getElementById("form-search").addEventListener("submit", buscar);
+    document.getElementById("form-comment").addEventListener("submit", comentar);
+    cargarComentarios();
+});
