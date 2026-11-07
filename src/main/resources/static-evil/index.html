@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>¡Ganaste un premio!</title>
+    <style>
+        body { font-family: system-ui, sans-serif; background: #111827; color: #f9fafb;
+               max-width: 640px; margin: 40px auto; padding: 0 16px; }
+        .evil { background: #7f1d1d; color: #fff; padding: 8px 12px; border-radius: 6px;
+                font-size: 0.8rem; display: inline-block; }
+        h1 { margin: 16px 0; }
+        button { padding: 10px 16px; border: 0; border-radius: 6px; background: #f59e0b;
+                 color: #111827; font-weight: 700; cursor: pointer; font-size: 1rem; }
+        a { color: #fbbf24; }
+        pre { background: #1f2937; padding: 12px; border-radius: 6px; white-space: pre-wrap;
+              word-break: break-word; }
+        .result:empty { display: none; }
+    </style>
+</head>
+<body>
+    <span class="evil">SITIO ATACANTE · http://127.0.0.1:4000 (demo del taller)</span>
+    <h1>🎉 ¡Felicidades, ganaste!</h1>
+    <p>Hacé clic para reclamar tu premio sorpresa.</p>
+
+    <!-- Ataque CORS: intenta leer datos de la tienda donde la víctima tiene sesión. -->
+    <button id="btn-robar" type="button">Reclamar premio</button>
+    <pre id="resultado" class="result"></pre>
+
+    <p style="margin-top:28px; font-size:0.85rem;">
+        ¿Buscabas el otro truco? <a href="premio.html">Abrí el regalo</a> (demo de CSRF).
+    </p>
+
+    <script src="cors.js"></script>
+</body>
+</html>

