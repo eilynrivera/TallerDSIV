@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import taller.owasp.entity.User;
 
-public interface UserRepository extends JpaRepository<User, Integer>{
+public interface UserRepository extends JpaRepository<User, Long>{
     List<User> findByUsernameAndPassword(String username, String password);
     List<User> findByUsername(String username);
 }

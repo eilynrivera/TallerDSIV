@@ -11,14 +11,17 @@ import taller.owasp.repository.CommentRepository;
 @Service
 @Transactional
 public class CommentService {
-    public final CommentRepository repository;
+    private final CommentRepository repository;
 
     public CommentService(CommentRepository repository) {
         this.repository = repository;
     }
 
-    List<Comment> findAllByOrderByIdDesc(){
+    public List<Comment> findAllByOrderByIdDesc() {
         return repository.findAllByOrderByIdDesc();
     }
-    
+
+    public Comment guardar(String author, String content) {
+        return repository.save(new Comment(author, content));
+    }
 }
