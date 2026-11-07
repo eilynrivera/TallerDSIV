@@ -6,6 +6,10 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.header.writers.DelegatingRequestMatcherHeaderWriter;
+import org.springframework.security.web.header.writers.StaticHeadersWriter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
 
 /**
  * SecurityConfig del perfil PATCHED (puerto 3001).
@@ -27,6 +31,11 @@ import org.springframework.security.web.SecurityFilterChain;
 @Profile("patched")
 public class SecurityConfig {
 
+    // M3 capa 3 (A): solo se ejecutan scripts servidos por la propia app; un
+    // <img onerror=...> o un <script> inyectado en un comentario no corre.
+    private static final String CSP = "default-src 'self'; script-src 'self'; style-src 'self'; "
+                                    + "img-src 'self'; object-src 'none'";
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
@@ -39,9 +48,15 @@ public class SecurityConfig {
                 // --- CSRF --- (M5 / C9: reactivar solo para /api/account/**)
                 .csrf(csrf -> csrf.disable())
 
-                // --- headers --- (M3 / A: CSP; M4 / C7: cabeceras completas.
-                // frameOptions off por ahora para la consola H2 de M2)
-                .headers(headers -> headers.frameOptions(frame -> frame.disable()))
+                // --- headers --- (M3 / A: solo la CSP. M4 / C7: quitar defaultsDisabled()
+                // para activar el resto de cabeceras, dejando la CSP.)
+                // La CSP no se aplica a /h2-console/** porque la consola H2 (M2) usa
+                // JavaScript en linea y dejaria de funcionar.
+                .headers(headers -> headers
+                        .defaultsDisabled()
+                        .addHeaderWriter(new DelegatingRequestMatcherHeaderWriter(
+                                new NegatedRequestMatcher(new AntPathRequestMatcher("/h2-console/**")),
+                                new StaticHeadersWriter("Content-Security-Policy", CSP))))
 
                 // --- CORS --- (M4 / C7: lista explicita de origenes)
                 // http.cors(cors -> cors.configurationSource(...));

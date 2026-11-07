@@ -1,0 +1,45 @@
+# M3 · XSS almacenado
+# Requisitos: REST Client y los perfiles levantados, cada uno en su terminal:
+#   .\mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=vulnerable"   (3000)
+#   .\mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=patched"      (3001)
+# El alert() solo se ve en el navegador (frontend de C); aquí se ve qué guarda el
+# servidor y qué cabeceras responde.
+
+@vuln = http://localhost:3000
+@safe = http://localhost:3001
+
+### 1a. Ataque: guardar un comentario con HTML → se guarda tal cual
+POST {{vuln}}/api/comments
+Content-Type: application/json
+
+{"author": "atacante", "content": "<img src=x onerror=alert(document.cookie)>"}
+
+### 1b. Ver los comentarios: el <img onerror> está intacto
+GET {{vuln}}/api/comments
+
+### 2a. Mismo ataque en la versión segura → la etiqueta se elimina al guardar (capa 2)
+POST {{safe}}/api/comments
+Content-Type: application/json
+
+{"author": "atacante", "content": "<img src=x onerror=alert(document.cookie)>"}
+
+### 2b. Ver los comentarios: ya no hay HTML
+GET {{safe}}/api/comments
+
+### 3a. Cabeceras de la versión vulnerable: sin Content-Security-Policy
+GET {{vuln}}/api/comments
+
+### 3b. Cabeceras de la versión segura: Content-Security-Policy presente (capa 3)
+GET {{safe}}/api/comments
+
+### 4a. Cookie de sesión vulnerable: Set-Cookie sid_vuln SIN HttpOnly
+POST {{vuln}}/api/login
+Content-Type: application/json
+
+{"username": "maria", "password": "sunshine"}
+
+### 4b. Cookie de sesión segura: Set-Cookie sid_safe CON HttpOnly
+POST {{safe}}/api/login
+Content-Type: application/json
+
+{"username": "maria", "password": "sunshine"}

