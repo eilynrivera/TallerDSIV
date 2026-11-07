@@ -32,9 +32,11 @@ public class ProductService {
     // VULNERABLE (M1): el texto del usuario se pega dentro del SQL.
     // Con q = ' UNION SELECT ... se pueden leer otras tablas.
     // Las columnas se escriben en orden fijo para que el UNION tenga 4 columnas.
+    // ILIKE (H2) ignora mayúsculas, igual que la versión segura (IgnoreCase), y no
+    // agrega paréntesis: los payloads del plan (' UNION ... --) funcionan tal cual.
     public List<Map<String, Object>> buscarInseguro(String q) {
         String sql = "SELECT id, name, description, price FROM products "
-                   + "WHERE name LIKE '%" + q + "%'";
+                   + "WHERE name ILIKE '%" + q + "%'";
 
         List<?> filas = entityManager.createNativeQuery(sql).getResultList();
 

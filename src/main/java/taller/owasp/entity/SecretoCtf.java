@@ -9,8 +9,8 @@ import jakarta.persistence.*;
 public class SecretoCtf {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    public Long id;
-    public String flag;
+    private Long id;
+    private String flag;
 
     public SecretoCtf() {}
 

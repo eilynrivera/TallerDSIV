@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import taller.owasp.controller.rest.dto.ComentarioRequest;
 import taller.owasp.entity.Comment;
 import taller.owasp.service.CommentService;
 
@@ -23,9 +24,6 @@ public class XssVulnerableRestController {
     public XssVulnerableRestController(CommentService commentService) {
         this.commentService = commentService;
     }
-
-    // Cuerpo del comentario: {"author": "...", "content": "..."}
-    public record ComentarioRequest(String author, String content) {}
 
     @GetMapping
     public List<Comment> listar() {

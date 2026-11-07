@@ -7,10 +7,10 @@ import jakarta.persistence.*;
 public class Product {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    public Long id;
-    public String name;
-    public String description;
-    public Double price;
+    private Long id;
+    private String name;
+    private String description;
+    private Double price;
 
     public Product() {}
 

@@ -9,11 +9,11 @@ import jakarta.persistence.*;
 public class Comment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    public Long id;
-    public String author;
+    private Long id;
+    private String author;
     @Column(length = 2000)
-    public String content;
-    public LocalDateTime createdAt = LocalDateTime.now();
+    private String content;
+    private LocalDateTime createdAt = LocalDateTime.now();
 
     public Comment() {}
 

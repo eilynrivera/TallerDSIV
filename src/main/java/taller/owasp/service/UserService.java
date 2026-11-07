@@ -1,6 +1,7 @@
 package taller.owasp.service;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
@@ -20,13 +21,9 @@ public class UserService {
         this.entityManager = entityManager;
     }
 
-    // SEGURO (M1 corregido): consulta parametrizada.
-    public List<User> findByUsernameAndPassword(String username, String password) {
-        return repository.findByUsernameAndPassword(username, password);
-    }
-
-    // Lo usará B en M2 (login con BCrypt).
-    public List<User> findByUsername(String username) {
+    // SEGURO (M1 + M2): consulta parametrizada; la contrasena se verifica con BCrypt
+    // en el controlador patched.
+    public Optional<User> findByUsername(String username) {
         return repository.findByUsername(username);
     }
 
