@@ -16,6 +16,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import taller.owasp.domain.User;
 import taller.owasp.repository.UserRepository;
+import taller.owasp.shared.AtaquesInyeccion;
+import taller.owasp.shared.AtaquesTaller;
+import taller.owasp.shared.Scoreboard;
 import taller.owasp.shared.SessionUser;
 
 /**
@@ -58,6 +61,11 @@ public class CsrfController {
         }
         user.setEmail(email);
         userRepository.save(user);
+        if (AtaquesTaller.esCruzada(http)) {
+            // Marcador M5: el cambio de correo vino de otro sitio (premio.html, 4000)
+            // y aun asi se aplico: la falta de token CSRF deja pasar el ataque.
+            Scoreboard.registrar(AtaquesTaller.M5, AtaquesTaller.M5_CSRF, AtaquesInyeccion.EXITO);
+        }
         return ResponseEntity.ok(Map.of("mensaje", "Correo actualizado", "email", email));
     }
 

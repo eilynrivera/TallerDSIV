@@ -69,7 +69,12 @@ public class SecurityConfig {
                         .frameOptions(frame -> frame.sameOrigin())
                         .addHeaderWriter(new DelegatingRequestMatcherHeaderWriter(
                                 new NegatedRequestMatcher(new AntPathRequestMatcher("/h2-console/**")),
-                                new StaticHeadersWriter("Content-Security-Policy", CSP))));
+                                new StaticHeadersWriter("Content-Security-Policy", CSP))))
+
+                // Marcador M5 (C9): al rechazar el POST sin token CSRF, se registra
+                // "bloqueado" antes de devolver el 403 (ver CsrfMarcadorAccessDeniedHandler).
+                .exceptionHandling(ex -> ex
+                        .accessDeniedHandler(new CsrfMarcadorAccessDeniedHandler()));
 
         // --- B7: limitar intentos de inicio de sesion ---
         http.addFilterBefore(

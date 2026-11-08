@@ -21,6 +21,7 @@ import taller.owasp.shared.Scoreboard;
 import taller.owasp.shared.SessionUser;
 
 import static taller.owasp.shared.AtaquesInyeccion.*;
+import static taller.owasp.shared.AtaquesTaller.*;
 
 // M1 VULNERABLE: inyeccion SQL en el login y en la busqueda de productos.
 // M2 VULNERABLE: el login responde con la entidad completa (contrasena incluida).
@@ -54,6 +55,8 @@ public class SqliVulnerableRestController {
                 // Marcador: se entro con un payload, no con la contrasena.
                 Scoreboard.registrar(M1, M1_LOGIN, EXITO);
             }
+            // Marcador M2: la respuesta lleva la entidad completa, contrasena incluida.
+            Scoreboard.registrar(M2, M2_PASSWORD, EXITO);
             // ERROR A PROPÓSITO (M2): se devuelve la entidad completa, contraseña incluida.
             return ResponseEntity.ok(u);
         } catch (Exception e) {
