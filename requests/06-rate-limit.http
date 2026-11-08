@@ -1,0 +1,43 @@
+# B8 - M6: Rate Limiting
+# Requisito: levantar el perfil patched en el puerto 3001.
+#   .\mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=patched"
+# Limite: 5 intentos por IP cada 60 segundos.
+# El sexto intento debe responder HTTP 429.
+
+@safe = http://localhost:3001
+
+### 1. Primer intento: debe responder 401
+POST {{safe}}/api/login
+Content-Type: application/json
+
+{"username": "maria", "password": "incorrecta"}
+
+### 2. Segundo intento: debe responder 401
+POST {{safe}}/api/login
+Content-Type: application/json
+
+{"username": "maria", "password": "incorrecta"}
+
+### 3. Tercer intento: debe responder 401
+POST {{safe}}/api/login
+Content-Type: application/json
+
+{"username": "maria", "password": "incorrecta"}
+
+### 4. Cuarto intento: debe responder 401
+POST {{safe}}/api/login
+Content-Type: application/json
+
+{"username": "maria", "password": "incorrecta"}
+
+### 5. Quinto intento: debe responder 401
+POST {{safe}}/api/login
+Content-Type: application/json
+
+{"username": "maria", "password": "incorrecta"}
+
+### 6. Sexto intento: debe responder 429
+POST {{safe}}/api/login
+Content-Type: application/json
+
+{"username": "maria", "password": "incorrecta"}

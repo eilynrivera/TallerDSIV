@@ -1,4 +1,3 @@
-
 package taller.owasp.patched;
 
 import java.io.IOException;
@@ -56,7 +55,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
                 response.setContentType("application/json");
                 response.setCharacterEncoding("UTF-8");
                 response.getWriter().write(
-                        "{\"mensaje\":\"Demasiados intentos. Intenta de nuevo mÃ¡s tarde.\"}");
+                        "{\"mensaje\":\"Demasiados intentos. Intenta de nuevo más tarde.\"}");
                 return;
             }
 
@@ -74,4 +73,3 @@ public class RateLimitFilter extends OncePerRequestFilter {
         private int cantidad = 0;
     }
 }
-
