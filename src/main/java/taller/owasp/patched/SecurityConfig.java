@@ -10,6 +10,8 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.security.web.header.writers.DelegatingRequestMatcherHeaderWriter;
 import org.springframework.security.web.header.writers.StaticHeadersWriter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
@@ -46,8 +48,15 @@ public class SecurityConfig {
                 .httpBasic(basic -> basic.disable())
                 .logout(logout -> logout.disable())
 
-                // --- CSRF --- (M5 / C9: reactivar solo para /api/account/**)
-                .csrf(csrf -> csrf.disable())
+                // --- CSRF --- (M5 / C9): activo SOLO para /api/account/**. Se ignoran
+                // login, logout, comentarios y la consola H2 para no romperlos. El token
+                // va en la cookie XSRF-TOKEN (legible por JS) y el frontend lo reenvia en
+                // la cabecera X-XSRF-TOKEN. El form del atacante no lo tiene -> 403.
+                .csrf(csrf -> csrf
+                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                        .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler())
+                        .ignoringRequestMatchers("/api/login", "/api/logout",
+                                "/api/comments", "/h2-console/**"))
 
                 // --- CORS --- (M4 / C7): lista explicita; el sitio atacante (4000) no
                 // esta permitido, asi que el navegador bloquea la lectura de la respuesta.

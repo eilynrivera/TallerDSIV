@@ -15,7 +15,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 import taller.owasp.domain.Comment;
 import taller.owasp.service.CommentService;
+import taller.owasp.shared.Scoreboard;
 
+import static taller.owasp.shared.AtaquesInyeccion.*;
+
+// M3 CORREGIDO: capa 2 (sanitizer al guardar). La capa 1 es textContent en el frontend
+// y la capa 3 es la CSP de patched/SecurityConfig + la cookie HttpOnly.
 @RestController
 @Profile("patched")
 @RequestMapping("/api/comments")
@@ -48,8 +53,15 @@ public class XssPatchedRestController {
                 || datos.content().length() > MAX_CONTENIDO) {
             return ResponseEntity.badRequest().body("El comentario debe tener entre 1 y " + MAX_CONTENIDO + " caracteres");
         }
+        // Capa 2: el sanitizer elimina todas las etiquetas. Con lab.demo.csp-solo=true se
+        // apaga A PROPÓSITO para demostrar que la CSP (capa 3) sola tambien detiene el ataque
+        // (pagina static-patched/csp-demo.html, que pinta con innerHTML).
         String contenido = cspSolo ? datos.content() : SIN_ETIQUETAS.sanitize(datos.content());
         String autor = SIN_ETIQUETAS.sanitize(datos.author());
+        if (esXss(datos.content()) || esXss(datos.author())) {
+            // Marcador: sin sanitizer, igual lo bloquea la CSP en el navegador.
+            Scoreboard.registrar(M3, M3_XSS, BLOQUEADO);
+        }
         return ResponseEntity.ok(commentService.guardar(autor, contenido));
     }
 

@@ -24,6 +24,38 @@ async function login(event) {
     const texto = await resp.text();
     // En patched la respuesta es un DTO sin contrasena.
     salida.textContent = "HTTP " + resp.status + "\n" + texto;
+    cargarEmail();
+}
+
+// ---------- Mi cuenta (M5 CSRF) ----------
+function leerCookie(nombre) {
+    const par = document.cookie.split("; ").find((c) => c.startsWith(nombre + "="));
+    return par ? decodeURIComponent(par.split("=")[1]) : "";
+}
+
+async function cargarEmail() {
+    const el = document.getElementById("email-actual");
+    const resp = await api("/api/account/email");
+    el.textContent = resp.ok ? ((await resp.json()).email || "(vacío)") : "(iniciá sesión)";
+}
+
+async function cambiarEmail(event) {
+    event.preventDefault();
+    const email = document.getElementById("email-nuevo").value;
+    // DEFENSA (M5): se pide el token CSRF y se envia en la cabecera X-XSRF-TOKEN.
+    await api("/api/csrf");
+    const token = leerCookie("XSRF-TOKEN");
+    const resp = await api("/api/account/email", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            "X-XSRF-TOKEN": token,
+        },
+        body: "email=" + encodeURIComponent(email),
+    });
+    document.getElementById("email-result").textContent =
+        "HTTP " + resp.status + "\n" + (await resp.text());
+    cargarEmail();
 }
 
 // ---------- Perfil / sesion ----------
@@ -115,5 +147,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("btn-logout").addEventListener("click", cerrarSesion);
     document.getElementById("form-search").addEventListener("submit", buscar);
     document.getElementById("form-comment").addEventListener("submit", comentar);
+    document.getElementById("form-email").addEventListener("submit", cambiarEmail);
     cargarComentarios();
+    cargarEmail();
 });

@@ -1,0 +1,31 @@
+# Extra (A11) · IDOR (opcional, fuera de la agenda de 60 min)
+# Requisitos: REST Client y los perfiles levantados:
+#   .\mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=vulnerable"   (3000)
+#   .\mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=patched"      (3001)
+# REST Client recuerda la cookie de sesión de cada servidor: ejecutar los bloques EN ORDEN.
+# Ids del Seed: admin = 1, maria = 2, juan = 3.
+# Esperado: en @vuln maria lee los datos de admin; en @safe recibe 403.
+
+@vuln = http://localhost:3000
+@safe = http://localhost:3001
+
+### 0a. Iniciar sesión como maria en la versión vulnerable
+POST {{vuln}}/api/login
+Content-Type: application/json
+
+{"username": "maria", "password": "sunshine"}
+
+### 1a. Ataque: maria pide el id 1 (admin) → 200 con los datos de admin y su contraseña
+GET {{vuln}}/api/users/1
+
+### 0b. Iniciar sesión como maria en la versión segura
+POST {{safe}}/api/login
+Content-Type: application/json
+
+{"username": "maria", "password": "sunshine"}
+
+### 1b. Mismo ataque en la versión segura → 403
+GET {{safe}}/api/users/1
+
+### 2b. Su propio id en la versión segura → 200, sin contraseña
+GET {{safe}}/api/users/2
