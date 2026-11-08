@@ -42,6 +42,18 @@
             <pre id="products-error" class="result error"></pre>
         </section>
 
+        <!-- Mi cuenta (M5 CSRF) -->
+        <section class="card">
+            <h2>Mi cuenta</h2>
+            <p>Correo actual: <strong id="email-actual">(iniciá sesión)</strong></p>
+            <form id="form-email" autocomplete="off">
+                <input id="email-nuevo" type="email" placeholder="Nuevo correo">
+                <button type="submit">Cambiar correo</button>
+            </form>
+            <p class="hint">El sitio atacante (<code>premio.html</code>) cambia este correo sin tu permiso (CSRF).</p>
+            <pre id="email-result" class="result"></pre>
+        </section>
+
         <!-- Comentarios (M3 XSS) -->
         <section class="card">
             <h2>Comentarios</h2>
