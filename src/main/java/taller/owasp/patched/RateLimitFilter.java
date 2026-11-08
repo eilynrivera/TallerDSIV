@@ -9,6 +9,9 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import taller.owasp.shared.AtaquesInyeccion;
+import taller.owasp.shared.AtaquesTaller;
+import taller.owasp.shared.Scoreboard;
 
 public class RateLimitFilter extends OncePerRequestFilter {
 
@@ -50,6 +53,8 @@ public class RateLimitFilter extends OncePerRequestFilter {
             response.setHeader("RateLimit-Reset", String.valueOf(segundosRestantes));
 
             if (ventana.cantidad >= MAX_INTENTOS) {
+                // Marcador M6: el limite corto la fuerza bruta en este intento.
+                Scoreboard.registrar(AtaquesTaller.M6, AtaquesTaller.M6_FUERZA, AtaquesInyeccion.BLOQUEADO);
                 response.setHeader("Retry-After", String.valueOf(segundosRestantes));
                 response.setStatus(429);
                 response.setContentType("application/json");

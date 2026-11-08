@@ -27,6 +27,7 @@ import taller.owasp.shared.Scoreboard;
 import taller.owasp.shared.SessionUser;
 
 import static taller.owasp.shared.AtaquesInyeccion.*;
+import static taller.owasp.shared.AtaquesTaller.*;
 
 // M1 CORREGIDO: consultas parametrizadas (Spring Data) y errores genericos al cliente.
 // M2 CORREGIDO (B4): contrasena verificada con BCrypt y respuesta sin contrasena.
@@ -65,6 +66,8 @@ public class SqliPatchedRestController {
         User u = encontrado.get();
         session.setAttribute(SessionUser.ATRIBUTO_SESION,
                 new SessionUser(u.getId(), u.getUsername(), u.getRole()));
+        // Marcador M2: la respuesta es un DTO sin contrasena (verificada con BCrypt).
+        Scoreboard.registrar(M2, M2_PASSWORD, BLOQUEADO);
         return ResponseEntity.ok(new LoginResponse(u.getId(), u.getUsername(), u.getRole()));
     }
 

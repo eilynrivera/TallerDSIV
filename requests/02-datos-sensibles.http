@@ -1,0 +1,28 @@
+# M2 · Datos sensibles y hashing
+# Requisitos: extensión REST Client (humao.rest-client) y los perfiles levantados:
+#   .\mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=vulnerable"   (3000)
+#   .\mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=patched"      (3001)
+# Esperado: el login FUNCIONA en ambos, pero en @vuln la respuesta trae la contraseña
+# en claro y en @safe no. Complementa con la consola H2 (ver soluciones/02).
+
+@vuln = http://localhost:3000
+@safe = http://localhost:3001
+
+### 1a. Login válido en vulnerable → 200 con la ENTIDAD completa (incluye "password")
+POST {{vuln}}/api/login
+Content-Type: application/json
+
+{"username": "maria", "password": "sunshine"}
+
+### 1b. Mismo login en la versión segura → 200 con un DTO SIN "password"
+POST {{safe}}/api/login
+Content-Type: application/json
+
+{"username": "maria", "password": "sunshine"}
+
+### 2a. Perfil en vulnerable (referencia) → el SessionUser no lleva contraseña
+# (requiere la cookie de sesión del login 1a; REST Client la reutiliza)
+GET {{vuln}}/api/profile
+
+### 2b. Perfil en la versión segura
+GET {{safe}}/api/profile
