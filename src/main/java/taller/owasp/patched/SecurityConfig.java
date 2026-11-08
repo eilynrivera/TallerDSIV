@@ -1,3 +1,4 @@
+
 package taller.owasp.patched;
 
 import java.util.List;
@@ -8,6 +9,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.header.writers.DelegatingRequestMatcherHeaderWriter;
 import org.springframework.security.web.header.writers.StaticHeadersWriter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
@@ -24,6 +26,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
  *    todas las cabeceras de seguridad por defecto activas (ya no defaultsDisabled()),
  *    conservando la CSP. frameOptions queda en sameOrigin para no romper la consola H2.
  *  - M5 / C9: CSRF se reactivara solo para /api/account/**.
+ *  - B7: limite de cinco intentos de login por IP cada minuto.
  */
 @Configuration
 @EnableWebSecurity
@@ -58,6 +61,11 @@ public class SecurityConfig {
                         .addHeaderWriter(new DelegatingRequestMatcherHeaderWriter(
                                 new NegatedRequestMatcher(new AntPathRequestMatcher("/h2-console/**")),
                                 new StaticHeadersWriter("Content-Security-Policy", CSP))));
+
+        // --- B7: limitar intentos de inicio de sesion ---
+        http.addFilterBefore(
+                new RateLimitFilter(),
+                UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
