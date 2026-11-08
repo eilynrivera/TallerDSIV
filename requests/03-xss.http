@@ -43,3 +43,20 @@ POST {{safe}}/api/login
 Content-Type: application/json
 
 {"username": "maria", "password": "sunshine"}
+
+# ---------------------------------------------------------------------------
+# DEMO "CSP sola" (capa 3 aislada). Reiniciar patched con el sanitizer apagado:
+#   .\mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=patched" "-Dspring-boot.run.arguments=--lab.demo.csp-solo=true"
+# Luego abrir en Chrome  http://localhost:3001/csp-demo.html  (pinta con innerHTML).
+# El <img onerror> queda en el DOM pero NO hay alert: la consola muestra
+# "Refused to execute inline event handler ... script-src 'self'".
+# ---------------------------------------------------------------------------
+
+### 5a. (Demo CSP sola) Guardar el payload: con csp-solo=true se guarda SIN sanitizar
+POST {{safe}}/api/comments
+Content-Type: application/json
+
+{"author": "atacante", "content": "<img src=x onerror=alert(document.cookie)>"}
+
+### 5b. (Demo CSP sola) La página de la demo responde con la cabecera Content-Security-Policy
+GET {{safe}}/csp-demo.html

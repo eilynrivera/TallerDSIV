@@ -23,7 +23,10 @@ import taller.owasp.domain.Product;
 import taller.owasp.domain.User;
 import taller.owasp.service.ProductService;
 import taller.owasp.service.UserService;
+import taller.owasp.shared.Scoreboard;
 import taller.owasp.shared.SessionUser;
+
+import static taller.owasp.shared.AtaquesInyeccion.*;
 
 // M1 CORREGIDO: consultas parametrizadas (Spring Data) y errores genericos al cliente.
 // M2 CORREGIDO (B4): contrasena verificada con BCrypt y respuesta sin contrasena.
@@ -49,6 +52,8 @@ public class SqliPatchedRestController {
     // Metodo de B (M2): findByUsername + passwordEncoder.matches + DTO.
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest datos, HttpSession session) {
+        registrarIntentoDeInyeccion(datos);   // marcador de M1 (A); no cambia la logica de B
+
         Optional<User> encontrado = userService.findByUsername(datos.username());
 
         if (encontrado.isEmpty()
@@ -65,7 +70,20 @@ public class SqliPatchedRestController {
 
     @GetMapping("/products")
     public List<Product> buscar(@RequestParam(defaultValue = "") String q) {
+        String ataque = ataqueDeBusqueda(q);
+        if (ataque != null) {
+            // Marcador: el payload se busca como texto literal; no rompe ni amplia la consulta.
+            Scoreboard.registrar(M1, ataque, BLOQUEADO);
+        }
         return productService.buscar(q);
+    }
+
+    // Marcador (M1, A): con la consulta parametrizada, admin' -- es solo un nombre de
+    // usuario que no existe, asi que el intento siempre queda bloqueado (401).
+    private void registrarIntentoDeInyeccion(LoginRequest datos) {
+        if (esInyeccionSql(datos.username()) || esInyeccionSql(datos.password())) {
+            Scoreboard.registrar(M1, M1_LOGIN, BLOQUEADO);
+        }
     }
 
     // Si algo falla, el detalle va al log y el cliente solo recibe un mensaje generico.

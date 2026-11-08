@@ -1,0 +1,33 @@
+# PLANTILLA de los archivos requests/0X-*.http (definida por A en M1; la usan los tres).
+# Copiar como requests/0X-<tema>.http y reemplazar lo que está entre < >.
+#
+# Reglas:
+#   - Arriba: título del módulo, requisitos y qué se espera.
+#   - Variables @vuln y @safe siempre con estos nombres.
+#   - Un bloque "###" por petición. Cada ataque va en pareja: Xa contra @vuln y Xb contra @safe,
+#     con el resultado esperado en el título del bloque.
+#   - En M1, nada de ":" ni "?" dentro de los payloads (Hibernate los toma como parámetros).
+
+# M<N> · <Nombre del módulo>
+# Requisitos: extensión REST Client (humao.rest-client) y los perfiles levantados:
+#   .\mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=vulnerable"   (3000)
+#   .\mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=patched"      (3001)
+# Esperado: cada ataque FUNCIONA en @vuln y FALLA en @safe.
+
+@vuln = http://localhost:3000
+@safe = http://localhost:3001
+
+### 0. Petición normal (referencia)
+GET {{vuln}}/api/<ruta>
+
+### 1a. Ataque: <qué hace> → <resultado esperado en 3000>
+POST {{vuln}}/api/<ruta>
+Content-Type: application/json
+
+{"<campo>": "<payload>"}
+
+### 1b. Mismo ataque en la versión segura → <resultado esperado en 3001>
+POST {{safe}}/api/<ruta>
+Content-Type: application/json
+
+{"<campo>": "<payload>"}

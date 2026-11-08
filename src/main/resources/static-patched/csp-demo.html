@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo M3 — CSP sola</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header class="banner">VERSIÓN SEGURA · DEMO M3: SOLO LA CSP &nbsp;·&nbsp; http://localhost:3001/csp-demo.html</header>
+
+    <main>
+        <!-- M3 · demo de la capa 3 (Persona A). -->
+        <section class="card">
+            <h2>¿Qué demuestra esta página?</h2>
+            <p class="hint">
+                Esta página pinta los comentarios con <code>innerHTML</code>, igual que la versión
+                vulnerable (capa 1 apagada). Si el servidor arrancó con
+                <code>lab.demo.csp-solo=true</code>, el sanitizer también está apagado (capa 2).
+                Solo queda la <strong>Content-Security-Policy</strong>: el
+                <code>&lt;img src=x onerror=alert(document.cookie)&gt;</code> llega al DOM, pero el
+                navegador se niega a ejecutar el manejador en línea. Abre DevTools → Console
+                para ver el aviso <em>Refused to execute inline event handler</em>.
+            </p>
+            <p class="hint">Estado del sanitizer en este servidor: <strong id="estado">comprobando…</strong></p>
+        </section>
+
+        <section class="card">
+            <h2>Comentarios (pintados con innerHTML)</h2>
+            <form id="form-comment" autocomplete="off">
+                <input id="comment-author" type="text" placeholder="Tu nombre" required>
+                <input id="comment-content" type="text" placeholder="Tu comentario">
+                <button type="submit">Comentar</button>
+            </form>
+            <div id="comments"></div>
+        </section>
+    </main>
+
+    <script src="csp-demo.js"></script>
+</body>
+</html>
