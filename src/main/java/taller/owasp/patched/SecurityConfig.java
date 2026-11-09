@@ -85,7 +85,11 @@ public class SecurityConfig {
     }
 
     // CORS seguro: solo el propio origen de la tienda; nada de reflejar cualquiera.
-    private CorsConfigurationSource corsRestringido() {
+    // Expuesto como @Bean (nombre "corsTaller") para que /dashboard/estado pueda
+    // consultarlo en vivo. El nombre lo distingue del CorsConfigurationSource que
+    // Spring MVC tambien registra (mvcHandlerMappingIntrospector).
+    @Bean("corsTaller")
+    CorsConfigurationSource corsRestringido() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(List.of("http://localhost:3001", "http://127.0.0.1:3001"));
         config.setAllowedMethods(List.of("GET", "POST"));

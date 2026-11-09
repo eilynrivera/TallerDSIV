@@ -98,7 +98,8 @@ config.setAllowedMethods(List.of("GET", "POST"));</code></pre>
 <div class="why"><b>Por qué:</b> con una lista blanca, el origen <code>http://127.0.0.1:4000</code> ya <b>no</b> está permitido. El navegador no recibe el <code>Access-Control-Allow-Origin</code> que lo autorice y <b>bloquea la lectura</b> de la respuesta.</div>
 <div class="note"><b>Fijate:</b> acá ponés los orígenes de <b>tu propia tienda</b> (<code>:3000</code>). La versión segura de referencia (<code>patched/</code>) hace lo mismo pero con los suyos (<code>:3001</code>). Cada tienda permite <b>su propio origen</b>, y a nadie más.</div>
 <p>El método completo queda así:</p>
-<pre class="after"><code>private CorsConfigurationSource corsPermisivo() {
+<pre class="after"><code>@Bean("corsTaller")
+CorsConfigurationSource corsPermisivo() {
     CorsConfiguration config = new CorsConfiguration();
     config.setAllowedOrigins(List.of("http://localhost:3000", "http://127.0.0.1:3000"));
     config.setAllowedMethods(List.of("GET", "POST"));

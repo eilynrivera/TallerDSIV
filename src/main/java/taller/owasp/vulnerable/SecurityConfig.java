@@ -49,7 +49,11 @@ public class SecurityConfig {
     }
 
     // CORS que refleja el origen solicitante (allowedOriginPatterns + credenciales).
-    private CorsConfigurationSource corsPermisivo() {
+    // Expuesto como @Bean (nombre "corsTaller") para que /dashboard/estado pueda
+    // consultarlo en vivo. El nombre lo distingue del CorsConfigurationSource que
+    // Spring MVC tambien registra (mvcHandlerMappingIntrospector).
+    @Bean("corsTaller")
+    CorsConfigurationSource corsPermisivo() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOriginPatterns(List.of("*"));
         config.setAllowedMethods(List.of("*"));

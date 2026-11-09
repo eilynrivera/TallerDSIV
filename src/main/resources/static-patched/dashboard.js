@@ -1,7 +1,12 @@
 // Vista del marcador del taller OWASP.
-// Lee el MISMO endpoint JSON (GET /dashboard) y lo pinta en verde/rojo.
-// Se usa textContent (no innerHTML) porque las etiquetas de ataque contienen
-// HTML real (p. ej. "<img onerror>" de M3): pintarlas como HTML seria un auto-XSS.
+//
+// Dos fuentes:
+//   - GET /dashboard/estado -> "Defensas en vivo": estado deterministico segun la
+//     config actual del servidor. Reacciona al editar el codigo y re-levantar.
+//   - GET /dashboard         -> "Marcador de ataques": log de ataques (exito/bloqueado).
+//
+// Se usa textContent (no innerHTML) porque las etiquetas de ataque contienen HTML
+// real (p. ej. "<img onerror>" de M3): pintarlas como HTML seria un auto-XSS.
 
 const ORDEN = ["M1", "M2", "M3", "M4", "M5", "M6", "IDOR"];
 const REFRESCO_MS = 2000;
@@ -9,13 +14,64 @@ const REFRESCO_MS = 2000;
 function pill(tipo, port, texto) {
   const span = document.createElement("span");
   span.className = "pill " + tipo;
-  const p = document.createElement("span");
-  p.className = "port";
-  p.textContent = ":" + port + "  ";
-  span.appendChild(p);
+  if (port) {
+    const p = document.createElement("span");
+    p.className = "port";
+    p.textContent = ":" + port + "  ";
+    span.appendChild(p);
+  }
   span.appendChild(document.createTextNode(texto));
   return span;
 }
+
+// ---------- Defensas en vivo (GET /dashboard/estado) ----------
+
+function renderDefensas(datos) {
+  const cont = document.getElementById("defensas");
+  cont.textContent = "";
+
+  if (!Array.isArray(datos) || datos.length === 0) {
+    const vacio = document.createElement("div");
+    vacio.className = "empty";
+    vacio.textContent = "Sin defensas para mostrar.";
+    cont.appendChild(vacio);
+    return;
+  }
+
+  for (const d of datos) {
+    const row = document.createElement("div");
+    row.className = "row";
+
+    const nombre = document.createElement("div");
+    nombre.className = "ataque";
+    const titulo = document.createElement("div");
+    titulo.textContent = d.modulo + " · " + d.defensa;
+    nombre.appendChild(titulo);
+    const detalle = document.createElement("div");
+    detalle.className = "detalle";
+    detalle.textContent = d.detalle;
+    nombre.appendChild(detalle);
+    row.appendChild(nombre);
+
+    row.appendChild(d.activa
+      ? pill("bloqueado", "", "✓ activa")
+      : pill("exito", "", "✗ vulnerable"));
+
+    cont.appendChild(row);
+  }
+}
+
+async function cargarDefensas() {
+  try {
+    const r = await fetch("/dashboard/estado", { headers: { "Accept": "application/json" } });
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    renderDefensas(await r.json());
+  } catch (e) {
+    // El panel de ataques ya marca el estado de conexion.
+  }
+}
+
+// ---------- Marcador de ataques (GET /dashboard) ----------
 
 function render(datos) {
   const cont = document.getElementById("modulos");
@@ -24,7 +80,7 @@ function render(datos) {
   if (!Array.isArray(datos) || datos.length === 0) {
     const vacio = document.createElement("div");
     vacio.className = "empty";
-    vacio.textContent = "Todavia no hay ataques registrados. Lanzen un ataque y el marcador se llena solo.";
+    vacio.textContent = "Todavia no hay ataques registrados. Lancen un ataque y el marcador se llena solo.";
     cont.appendChild(vacio);
     actualizarProgreso(0, 0);
     return;
@@ -100,10 +156,10 @@ function marcarEstado(ok) {
   dot.className = "dot " + (ok ? "ok" : "off");
   txt.textContent = ok
     ? "actualizado " + new Date().toLocaleTimeString()
-    : "sin conexion con /dashboard";
+    : "sin conexion con el servidor";
 }
 
-async function cargar() {
+async function cargarAtaques() {
   try {
     const r = await fetch("/dashboard", { headers: { "Accept": "application/json" } });
     if (!r.ok) throw new Error("HTTP " + r.status);
@@ -114,5 +170,10 @@ async function cargar() {
   }
 }
 
-cargar();
-setInterval(cargar, REFRESCO_MS);
+function cargarTodo() {
+  cargarDefensas();
+  cargarAtaques();
+}
+
+cargarTodo();
+setInterval(cargarTodo, REFRESCO_MS);

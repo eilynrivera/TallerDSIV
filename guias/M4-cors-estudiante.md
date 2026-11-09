@@ -67,7 +67,8 @@ config.setAllowedMethods(List.of("GET", "POST"));
 El método completo queda así:
 
 ```java
-private CorsConfigurationSource corsPermisivo() {
+@Bean("corsTaller")
+CorsConfigurationSource corsPermisivo() {
     CorsConfiguration config = new CorsConfiguration();
     config.setAllowedOrigins(List.of("http://localhost:3000", "http://127.0.0.1:3000"));
     config.setAllowedMethods(List.of("GET", "POST"));
