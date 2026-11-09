@@ -4,6 +4,8 @@
 > **La idea:** la tienda **vulnerable** (`:3000`) deja que otro sitio te robe datos. Vas a **arreglar esa misma tienda** con tus manos y comprobar que al terminar se comporta **igual que la versión segura** (`:3001`).
 > **Tiempo estimado:** ~8 min. El fix se escribe en menos de 3 min.
 
+**Guías del taller:** **M4 — CORS (estás aquí)** · [M5 — CSRF](M5-csrf-estudiante.md)
+
 ---
 
 ## 0. El escenario (3 puertos)

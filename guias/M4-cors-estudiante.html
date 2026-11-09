@@ -22,6 +22,10 @@
        font-size:13px;letter-spacing:.04em;padding:4px 10px;border-radius:20px;text-transform:uppercase;}
   h1{font-size:30px;margin:14px 0 6px;line-height:1.2;}
   .sub{color:var(--muted);font-size:15px;margin:0;}
+  .guidenav{font-size:13.5px;margin:14px 0 0;color:var(--muted);}
+  .guidenav a{color:var(--accent);text-decoration:none;font-weight:600;}
+  .guidenav a:hover{text-decoration:underline;}
+  .guidenav .here{color:var(--fg);font-weight:700;}
   h2{font-size:21px;margin:38px 0 12px;padding-top:8px;border-top:1px solid var(--line);}
   h2 .n{display:inline-block;width:30px;height:30px;line-height:30px;text-align:center;
         background:var(--accent);color:#fff;border-radius:50%;font-size:15px;margin-right:10px;vertical-align:middle;}
@@ -51,6 +55,7 @@
   @media print{
     body{font-size:12px;} .wrap{padding:0;max-width:100%;}
     pre{font-size:11px;} h2{break-after:avoid;} pre,table,.note,.why{break-inside:avoid;}
+    .guidenav{display:none;}
     a{color:inherit;text-decoration:none;}
   }
 </style>
@@ -62,6 +67,7 @@
   <span class="tag">M4 · Hands-on</span>
   <h1>CORS y cabeceras de seguridad</h1>
   <p class="sub">La tienda <b>vulnerable</b> (<code>:3000</code>) deja que otro sitio te robe datos. Vas a arreglar <b>esa misma tienda</b> y comprobar que al terminar se comporta <b>igual que la versión segura</b> (<code>:3001</code>). &nbsp;·&nbsp; ~8 min · el fix se escribe en &lt; 3 min.</p>
+  <p class="guidenav">Guías del taller: <span class="here">M4 — CORS (estás aquí)</span> · <a href="M5-csrf-estudiante.html">M5 — CSRF</a></p>
 </header>
 
 <h2><span class="n">0</span>El escenario (3 puertos)</h2>
