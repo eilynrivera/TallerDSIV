@@ -78,6 +78,12 @@
   <tr><td>127.0.0.1:4000</td><td>El <b>sitio atacante</b></td><td>Intenta leer tus datos de <code>:3000</code></td></tr>
 </table>
 <div class="note"><b>(TallerDSIV)</b> La tienda segura <code>:3001</code>, la carpeta <code>patched/</code> y el marcador <code>dashboard.html</code> pertenecen al proyecto completo <b>TallerDSIV</b>. En esta guía se usan solo como <b>referencia</b> de cómo debe quedar la tienda <code>:3000</code>.</div>
+<h3>Levantar los tres servicios (una terminal por perfil)</h3>
+<p>Desde la carpeta del proyecto, en PowerShell, abrí <b>una terminal para cada perfil</b> y ejecutá:</p>
+<pre><code>mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=vulnerable"   # tienda vulnerable -> localhost:3000
+mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=patched"      # tienda segura     -> localhost:3001
+mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=evil"         # sitio atacante    -> 127.0.0.1:4000</code></pre>
+<div class="note">Cada comando queda corriendo en su terminal; no los cierres durante el taller. Reiniciar un perfil restaura su base (H2 en memoria).</div>
 <p><b>La vulnerabilidad:</b> la tienda <code>:3000</code> responde a CORS reflejando <i>cualquier</i> origen y además permite credenciales (<code>allowCredentials(true)</code>). Si tenés sesión iniciada, un sitio ajeno (<code>:4000</code>) puede hacer un <code>fetch</code> <i>con tu cookie</i> y leer tu perfil y tus comentarios.</p>
 
 <h2><span class="n">1</span>Primero: mirá el ataque funcionando</h2>

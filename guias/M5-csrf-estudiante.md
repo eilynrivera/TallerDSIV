@@ -30,6 +30,18 @@
 
 > **(TallerDSIV)** La tienda segura `:3001`, la carpeta `patched/` y el marcador `dashboard.html` pertenecen al proyecto completo **TallerDSIV**. En esta guía se usan solo como **referencia**.
 
+### Levantar los tres servicios (una terminal por perfil)
+
+Desde la carpeta del proyecto, en PowerShell, abrí **una terminal para cada perfil** y ejecutá:
+
+```powershell
+mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=vulnerable"   # tienda vulnerable -> localhost:3000
+mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=patched"      # tienda segura     -> localhost:3001
+mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=evil"         # sitio atacante    -> 127.0.0.1:4000
+```
+
+> Cada comando queda corriendo en su terminal; no los cierres durante el taller. Reiniciar un perfil restaura su base (H2 en memoria).
+
 **La vulnerabilidad:** `POST /api/account/email` en `:3000` solo comprueba que **haya sesión**; no exige **token CSRF**, y la cookie va con `SameSite=None`. Por eso un formulario oculto en `premio.html` (`:4000`) puede enviar esa petición **con tu cookie** y cambiar tu correo sin que vos hagas nada.
 
 [↑ Contenido](#contenido)

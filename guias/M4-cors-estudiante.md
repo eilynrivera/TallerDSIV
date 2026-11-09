@@ -18,6 +18,18 @@
 
 > **(TallerDSIV)** La tienda segura **`:3001`**, la carpeta **`patched/`** y el marcador **`dashboard.html`** pertenecen al proyecto completo **TallerDSIV**. En esta guía se usan solo como **referencia** de cómo debe quedar la tienda `:3000`.
 
+### Levantar los tres servicios (una terminal por perfil)
+
+Desde la carpeta del proyecto, en PowerShell, abrí **una terminal para cada perfil** y ejecutá:
+
+```powershell
+mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=vulnerable"   # tienda vulnerable -> localhost:3000
+mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=patched"      # tienda segura     -> localhost:3001
+mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=evil"         # sitio atacante    -> 127.0.0.1:4000
+```
+
+> Cada comando queda corriendo en su terminal; no los cierres durante el taller. Reiniciar un perfil restaura su base (H2 en memoria).
+
 **La vulnerabilidad:** la tienda `:3000` responde a CORS reflejando *cualquier* origen y además permite credenciales (`allowCredentials(true)`). Si tenés sesión iniciada, un sitio ajeno (`:4000`) puede hacer un `fetch` *con tu cookie* y leer tu perfil y tus comentarios.
 
 ---
