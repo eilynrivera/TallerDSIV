@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Marcador · Taller OWASP</title>
+<link rel="stylesheet" href="dashboard.css">
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div>
+      <h1>Marcador del taller</h1>
+      <p class="sub">Pongan todo en verde: cada ataque pasa de <b>&#10007; exito</b> en :3000 a <b>&#10003; bloqueado</b> en :3001.</p>
+    </div>
+    <div class="meta">
+      <div><span id="estado-dot" class="dot"></span><span id="estado-txt">cargando&#8230;</span></div>
+    </div>
+  </header>
+
+  <div id="progreso" class="progress">
+    <div class="bar"><div id="fill" class="fill"></div></div>
+    <div id="progreso-label" class="label">&#8230;</div>
+  </div>
+
+  <div id="modulos"></div>
+
+  <footer>
+    Datos en vivo de <code>GET /dashboard</code> (JSON) &#183; se refresca solo cada 2 s &#183;
+    el marcador se alimenta de <code>scoreboard.jsonl</code>.
+  </footer>
+
+</div>
+<script src="dashboard.js"></script>
+</body>
+</html>

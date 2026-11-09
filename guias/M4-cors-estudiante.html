@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Guía M4 — CORS</title>
+<style>
+  :root{
+    --bg:#ffffff; --fg:#1c2128; --muted:#57606a; --line:#d8dee4;
+    --card:#f6f8fa; --accent:#0969da; --accent-bg:#ddf4ff;
+    --bad:#cf222e; --bad-bg:#ffebe9; --good:#1a7f37; --good-bg:#dafbe1;
+    --warn:#9a6700; --warn-bg:#fff8c5;
+    --code-bg:#1c2128; --code-fg:#e6edf3;
+    --mono:ui-monospace,SFMono-Regular,"SF Mono",Consolas,"Liberation Mono",Menlo,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--sans);line-height:1.6;}
+  .wrap{max-width:860px;margin:0 auto;padding:40px 20px 80px;}
+  header.top{border-bottom:3px solid var(--accent);padding-bottom:18px;margin-bottom:28px;}
+  .tag{display:inline-block;background:var(--accent-bg);color:var(--accent);font-weight:700;
+       font-size:13px;letter-spacing:.04em;padding:4px 10px;border-radius:20px;text-transform:uppercase;}
+  h1{font-size:30px;margin:14px 0 6px;line-height:1.2;}
+  .sub{color:var(--muted);font-size:15px;margin:0;}
+  h2{font-size:21px;margin:38px 0 12px;padding-top:8px;border-top:1px solid var(--line);}
+  h2 .n{display:inline-block;width:30px;height:30px;line-height:30px;text-align:center;
+        background:var(--accent);color:#fff;border-radius:50%;font-size:15px;margin-right:10px;vertical-align:middle;}
+  h3{font-size:16px;margin:22px 0 8px;}
+  p{margin:10px 0;}
+  code{font-family:var(--mono);background:var(--card);padding:1px 6px;border-radius:5px;font-size:.9em;}
+  pre{background:var(--code-bg);color:var(--code-fg);font-family:var(--mono);font-size:13.5px;
+      line-height:1.55;padding:16px 18px;border-radius:10px;overflow-x:auto;margin:12px 0;}
+  pre code{background:none;padding:0;color:inherit;font-size:inherit;}
+  pre.before{border-left:5px solid var(--bad);}
+  pre.after{border-left:5px solid var(--good);}
+  .lbl{font-weight:700;font-size:12px;letter-spacing:.03em;text-transform:uppercase;margin:16px 0 2px;}
+  .lbl.bad{color:var(--bad);} .lbl.good{color:var(--good);}
+  .note{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin:16px 0;}
+  .note.key{background:var(--accent-bg);border-color:#acd3ff;}
+  .note.warn{background:var(--warn-bg);border-color:#eedc82;}
+  .why{background:var(--good-bg);border-left:5px solid var(--good);padding:12px 16px;border-radius:0 8px 8px 0;margin:12px 0;}
+  table{border-collapse:collapse;width:100%;margin:16px 0;font-size:14.5px;}
+  th,td{border:1px solid var(--line);padding:9px 12px;text-align:left;vertical-align:top;}
+  th{background:var(--card);font-weight:700;}
+  .ports td:first-child{font-family:var(--mono);font-weight:700;white-space:nowrap;}
+  .ok{color:var(--good);font-weight:700;} .no{color:var(--bad);font-weight:700;}
+  ol,ul{margin:10px 0;padding-left:24px;} li{margin:6px 0;}
+  .file{font-family:var(--mono);background:var(--code-bg);color:var(--code-fg);
+        padding:10px 14px;border-radius:8px;display:inline-block;font-size:13.5px;margin:6px 0;}
+  footer{margin-top:50px;padding-top:16px;border-top:1px solid var(--line);color:var(--muted);font-size:13px;}
+  @media print{
+    body{font-size:12px;} .wrap{padding:0;max-width:100%;}
+    pre{font-size:11px;} h2{break-after:avoid;} pre,table,.note,.why{break-inside:avoid;}
+    a{color:inherit;text-decoration:none;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="top">
+  <span class="tag">M4 · Hands-on</span>
+  <h1>CORS y cabeceras de seguridad</h1>
+  <p class="sub">La tienda <b>vulnerable</b> (<code>:3000</code>) deja que otro sitio te robe datos. Vas a arreglar <b>esa misma tienda</b> y comprobar que al terminar se comporta <b>igual que la versión segura</b> (<code>:3001</code>). &nbsp;·&nbsp; ~8 min · el fix se escribe en &lt; 3 min.</p>
+</header>
+
+<h2><span class="n">0</span>El escenario (3 puertos)</h2>
+<table class="ports">
+  <tr><th>Puerto</th><th>Qué es</th><th>Tu rol</th></tr>
+  <tr><td>localhost:3000</td><td>La tienda <b>vulnerable</b></td><td><b>Es la que vas a arreglar</b></td></tr>
+  <tr><td>localhost:3001</td><td>La tienda <b>segura</b> (ya resuelta)</td><td>Tu <b>referencia</b>: así debe quedar la 3000</td></tr>
+  <tr><td>127.0.0.1:4000</td><td>El <b>sitio atacante</b></td><td>Intenta leer tus datos de <code>:3000</code></td></tr>
+</table>
+<p><b>La vulnerabilidad:</b> la tienda <code>:3000</code> responde a CORS reflejando <i>cualquier</i> origen y además permite credenciales (<code>allowCredentials(true)</code>). Si tenés sesión iniciada, un sitio ajeno (<code>:4000</code>) puede hacer un <code>fetch</code> <i>con tu cookie</i> y leer tu perfil y tus comentarios.</p>
+
+<h2><span class="n">1</span>Primero: mirá el ataque funcionando</h2>
+<ol>
+  <li>Iniciá sesión en la tienda <code>http://localhost:3000</code>.</li>
+  <li>En otra pestaña abrí el sitio atacante <code>http://127.0.0.1:4000</code> y pulsá el botón del ataque.</li>
+  <li>En la página del atacante aparece: <i>"Datos robados por el atacante: { perfil…, comentarios… }"</i>.</li>
+  <li>En <b>DevTools (F12) → Network</b>, la respuesta de <code>/api/profile</code> trae <code>Access-Control-Allow-Origin</code> reflejando al atacante.</li>
+</ol>
+<div class="note">Ese es el "antes". Ahora vas a arreglar la tienda <code>:3000</code> para que ese botón <b>deje de robar datos</b>, igual que ya pasa en <code>:3001</code>.</div>
+
+<h2><span class="n">2</span>El archivo a modificar</h2>
+<div class="file">src/main/java/taller/owasp/vulnerable/SecurityConfig.java</div>
+<div class="note warn"><b>Ojo:</b> es el de la carpeta <b><code>vulnerable/</code></b> (la tienda <code>:3000</code>), <b>no</b> el de <code>patched/</code>. La de <code>patched/</code> ya está resuelta y te sirve de referencia.</div>
+<p>Dentro hay <b>dos puntos</b> que tocar: el método de CORS (al final del archivo) y la línea de <code>headers</code>.</p>
+
+<h2><span class="n">3</span>Cambio A — CORS: de "cualquier origen" a lista blanca</h2>
+<p><i>El corazón de M4.</i> En el <b>método <code>corsPermisivo()</code></b> (al final del archivo), buscá estas dos líneas:</p>
+<div class="lbl bad">✗ Antes (vulnerable)</div>
+<pre class="before"><code>config.setAllowedOriginPatterns(List.of("*"));   // refleja CUALQUIER origen
+config.setAllowedMethods(List.of("*"));</code></pre>
+<div class="lbl good">✓ Después (corregido) — copiá y pegá</div>
+<pre class="after"><code>config.setAllowedOrigins(List.of("http://localhost:3000", "http://127.0.0.1:3000"));
+config.setAllowedMethods(List.of("GET", "POST"));</code></pre>
+<div class="why"><b>Por qué:</b> con una lista blanca, el origen <code>http://127.0.0.1:4000</code> ya <b>no</b> está permitido. El navegador no recibe el <code>Access-Control-Allow-Origin</code> que lo autorice y <b>bloquea la lectura</b> de la respuesta.</div>
+<div class="note"><b>Fijate:</b> acá ponés los orígenes de <b>tu propia tienda</b> (<code>:3000</code>). La versión segura de referencia (<code>patched/</code>) hace lo mismo pero con los suyos (<code>:3001</code>). Cada tienda permite <b>su propio origen</b>, y a nadie más.</div>
+<p>El método completo queda así:</p>
+<pre class="after"><code>private CorsConfigurationSource corsPermisivo() {
+    CorsConfiguration config = new CorsConfiguration();
+    config.setAllowedOrigins(List.of("http://localhost:3000", "http://127.0.0.1:3000"));
+    config.setAllowedMethods(List.of("GET", "POST"));
+    config.setAllowedHeaders(List.of("*"));
+    config.setAllowCredentials(true);
+
+    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+    source.registerCorsConfiguration("/**", config);
+    return source;
+}</code></pre>
+
+<h2><span class="n">4</span>Cambio B — Cabeceras de seguridad + CSP</h2>
+<p>En la cadena de <code>http</code>, buscá:</p>
+<div class="lbl bad">✗ Antes (vulnerable): todas las cabeceras apagadas</div>
+<pre class="before"><code>.headers(headers -> headers.disable());</code></pre>
+<div class="lbl good">✓ Después (corregido) — copiá y pegá</div>
+<pre class="after"><code>.headers(headers -> headers
+        .frameOptions(frame -> frame.sameOrigin())
+        .addHeaderWriter(new DelegatingRequestMatcherHeaderWriter(
+                new NegatedRequestMatcher(new AntPathRequestMatcher("/h2-console/**")),
+                new StaticHeadersWriter("Content-Security-Policy", CSP))));</code></pre>
+<p>Ese bloque usa una constante <code>CSP</code>. Agregala <b>justo después</b> de la línea <code>public class SecurityConfig {</code>:</p>
+<pre class="after"><code>private static final String CSP = "default-src 'self'; script-src 'self'; style-src 'self'; "
+                                + "img-src 'self'; object-src 'none'";</code></pre>
+<p>Y agregá estos <b>4 imports</b> arriba del archivo (junto a los demás <code>import</code>):</p>
+<pre class="after"><code>import org.springframework.security.web.header.writers.DelegatingRequestMatcherHeaderWriter;
+import org.springframework.security.web.header.writers.StaticHeadersWriter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.NegatedRequestMatcher;</code></pre>
+<div class="why"><b>Por qué:</b> al quitar <code>headers.disable()</code> vuelven las cabeceras de seguridad por defecto de Spring Security y se añade la CSP. <code>frameOptions = sameOrigin</code> deja viva la consola H2 sin permitir que otros sitios incrusten la app en un <code>&lt;iframe&gt;</code>.</div>
+
+<h2><span class="n">5</span>Re-levantar y volver a atacar</h2>
+<ol>
+  <li>Reiniciá la tienda <b>vulnerable</b> (<code>:3000</code>) para que tome los cambios.</li>
+  <li>Volvé al sitio atacante <code>http://127.0.0.1:4000</code> y pulsá otra vez el botón del ataque.</li>
+</ol>
+
+<h2><span class="n">6</span>Qué debés ver una vez aplicado el parche <span class="ok">✓</span></h2>
+<p>La meta: que la tienda <code>:3000</code> ahora bloquee el robo <b>igual que la <code>:3001</code></b>.</p>
+<table>
+  <tr><th>Dónde mirar</th><th>Antes (tu :3000 sin parchar)</th><th>Después (tu :3000 parchado)</th></tr>
+  <tr><td><b>Página del atacante (:4000)</b></td><td><i>"Datos robados por el atacante: {perfil…, comentarios…}"</i></td><td><span class="ok">"El navegador bloqueó la lectura (CORS)…"</span> — igual que contra :3001</td></tr>
+  <tr><td><b>DevTools → Console</b></td><td>El <code>fetch</code> trae los datos</td><td><span class="no">Error de CORS</span> rojo: <i>"has been blocked by CORS policy…"</i></td></tr>
+  <tr><td><b>Network</b> (respuesta)</td><td><code>Access-Control-Allow-Origin: 127.0.0.1:4000</code> reflejado</td><td>Ya <b>no</b> se refleja el origen atacante; la lectura se bloquea</td></tr>
+  <tr><td><b>Network</b> (cabeceras)</td><td>Faltan CSP, X-Frame-Options…</td><td>Aparecen <code>Content-Security-Policy</code> y <code>X-Frame-Options</code></td></tr>
+  <tr><td><b>La tienda :3000</b></td><td>Funciona</td><td><b>Sigue funcionando</b> (su propio origen sí está en la lista)</td></tr>
+  <tr><td><b>Consola H2</b></td><td>Carga</td><td><b>Sigue cargando</b> (<code>frameOptions=sameOrigin</code>)</td></tr>
+</table>
+<div class="note key"><b>La idea clave de M4:</b> <code>allowedOriginPatterns("*")</code> + <code>allowCredentials(true)</code> es la combinación peligrosa. La defensa es una <b>lista blanca de orígenes</b> (solo el tuyo).</div>
+<div class="note"><b>Sobre el marcador <code>/dashboard.html</code>:</b> muestra la comparación general 3000 (<span class="no">✗ exito</span>) vs 3001 (<span class="ok">✓ bloqueado</span>). La prueba concreta de que <b>tu</b> parche sirvió es que el atacante ya <b>no</b> puede leer los datos (el mensaje de CORS en la página del atacante y en la consola).</div>
+
+<h2>Si algo sale raro</h2>
+<ul>
+  <li><b>No compila:</b> revisá que agregaste los 4 <code>import</code> y la constante <code>CSP</code>.</li>
+  <li><b>El ataque sigue robando datos:</b> no reiniciaste la tienda <code>:3000</code>, o editaste el archivo equivocado (debe ser el de <b><code>vulnerable/</code></b>, no <code>patched/</code>).</li>
+  <li><b>Dejaste la base rara:</b> reiniciar el perfil restaura los datos (están en memoria).</li>
+  <li><b>Volver a dejar la tienda vulnerable</b> (para el siguiente grupo): <code>git checkout -- src/main/java/taller/owasp/vulnerable/SecurityConfig.java</code>.</li>
+</ul>
+
+<footer>Taller OWASP · Módulo M4 (CORS) · Guía del participante</footer>
+
+</div>
+</body>
+</html>
