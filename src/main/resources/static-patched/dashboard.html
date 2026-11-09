@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Marcador · Taller OWASP</title>
+<link rel="stylesheet" href="dashboard.css">
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div>
+      <h1>Marcador del taller</h1>
+      <p class="sub">Pongan todo en verde: cada defensa activa y cada ataque bloqueado suma.</p>
+    </div>
+    <div class="meta">
+      <div><span id="estado-dot" class="dot"></span><span id="estado-txt">cargando&#8230;</span></div>
+    </div>
+  </header>
+
+  <section class="panel">
+    <p class="seccion">Defensas en vivo</p>
+    <p class="seccion-sub">Segun la configuracion actual del servidor. Si editas el codigo y re-levantas, cambia solo.</p>
+    <div id="defensas" class="card"></div>
+  </section>
+
+  <section class="panel">
+    <p class="seccion">Marcador de ataques</p>
+    <p class="seccion-sub">Comparacion 3000 (&#10007; exito) vs 3001 (&#10003; bloqueado), segun los ataques que se lanzaron.</p>
+    <div id="progreso" class="progress">
+      <div class="bar"><div id="fill" class="fill"></div></div>
+      <div id="progreso-label" class="label">&#8230;</div>
+    </div>
+    <div id="modulos"></div>
+  </section>
+
+  <footer>
+    Defensas: <code>GET /dashboard/estado</code> &#183; ataques: <code>GET /dashboard</code> (JSON) &#183;
+    se refresca solo cada 2 s.
+  </footer>
+
+</div>
+<script src="dashboard.js"></script>
+</body>
+</html>
