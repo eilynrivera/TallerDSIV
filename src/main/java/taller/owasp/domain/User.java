@@ -2,6 +2,13 @@ package taller.owasp.domain;
 
 import jakarta.persistence.*;
 
+/**
+ * Entidad JPA de usuario (tabla "users"). Modela el login de M1/M2.
+ *
+ * El campo password guarda texto plano en el perfil vulnerable y un hash BCrypt en el
+ * patched (lo decide UserSeed). Es el dato sensible de M2: el login vulnerable devuelve
+ * esta entidad completa (contrasena incluida), y el patched responde un DTO sin ella.
+ */
 @Entity
 @Table(name = "users")   // "user" es palabra reservada en H2
 public class User {

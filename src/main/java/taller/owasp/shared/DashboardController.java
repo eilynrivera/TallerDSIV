@@ -16,6 +16,12 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Lee el marcador (scoreboard.jsonl que escribe {@link Scoreboard}) y lo resume para el
+ * dashboard: una fila por cada ataque, con el estado en vulnerable (exito) y en patched
+ * (bloqueado) lado a lado. Es el reporte historico de ataques ya lanzados; el estado de
+ * las defensas en vivo lo da aparte {@link EstadoDefensasController}.
+ */
 @RestController
 @Profile({"vulnerable", "patched"})
 public class DashboardController {
@@ -28,6 +34,12 @@ public class DashboardController {
         this.objectMapper = objectMapper;
     }
 
+    /**
+     * GET /dashboard: lee todas las lineas del marcador y las agrupa por modulo+ataque.
+     * Por cada clave guarda si hubo "exito" (columna vulnerable) y/o "bloqueado"
+     * (columna patched). Devuelve la lista para que el frontend pinte la tabla; si el
+     * archivo aun no existe, devuelve lista vacia.
+     */
     @GetMapping("/dashboard")
     public List<ResultadoDashboard> obtenerDashboard() throws IOException {
 
@@ -88,6 +100,8 @@ public class DashboardController {
         return respuesta;
     }
 
+    // Acumulador interno mientras se recorre el archivo: junta en una sola entrada el
+    // "exito" (vulnerable) y el "bloqueado" (patched) del mismo ataque.
     private static class EstadoAtaque {
 
         private final String modulo;
@@ -101,6 +115,7 @@ public class DashboardController {
         }
     }
 
+    // Fila final que se serializa a JSON para el frontend (una por ataque).
     public record ResultadoDashboard(
             String modulo,
             String ataque,

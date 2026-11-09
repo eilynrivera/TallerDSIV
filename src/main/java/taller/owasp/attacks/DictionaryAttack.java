@@ -11,10 +11,28 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * M6 · Herramienta de ataque de diccionario (fuerza bruta) al login.
+ *
+ * Lee una lista de contrasenas (attacks/passwords.txt) y prueba una por una contra
+ * POST /api/login hasta que alguna devuelve 200 (entro). Es la contraparte ofensiva de
+ * las defensas de M6:
+ *   - Contra el perfil vulnerable (3000): no hay limite, asi que recorre la lista
+ *     entera y suele encontrar la contrasena.
+ *   - Contra el perfil patched (3001): el RateLimitFilter responde 429 al 6.o intento
+ *     por minuto y el ataque se detiene sin llegar lejos.
+ *
+ * No es un bean de Spring: es un programa suelto que se ejecuta con main(...).
+ */
 public class DictionaryAttack {
 
     private final HttpClient cliente = HttpClient.newHttpClient();
 
+    /**
+     * Carga el diccionario de contrasenas desde el recurso attacks/passwords.txt
+     * (empaquetado en el classpath). Ignora las lineas en blanco y recorta espacios.
+     * Lanza excepcion si el archivo no esta en el classpath.
+     */
     public List<String> cargarContraseñas() throws Exception {
 
         List<String> contraseñas = new ArrayList<>();
@@ -42,6 +60,8 @@ public class DictionaryAttack {
         return contraseñas;
     }
 
+    // Comprobacion rapida de que el diccionario se cargo bien: imprime cuantas
+    // contrasenas hay y una de muestra. Util para depurar, no forma parte del ataque.
     public void probarCarga() throws Exception {
         List<String> contraseñas = cargarContraseñas();
 
@@ -49,6 +69,14 @@ public class DictionaryAttack {
         System.out.println("Contraseña en posición 37: " + contraseñas.get(36));
     }
 
+    /**
+     * Ejecuta el ataque: para el usuario dado, envia un POST JSON al login con cada
+     * contrasena del diccionario e interpreta la respuesta HTTP:
+     *   - 200 -> la contrasena es correcta: la imprime y termina.
+     *   - 429 -> el rate limit (patched) corto el ataque: termina.
+     *   - 401 -> contrasena incorrecta: sigue con la siguiente.
+     *   - otro -> respuesta inesperada: termina para no seguir a ciegas.
+     */
     public void ejecutarAtaque(String url, String usuario) throws Exception {
 
         List<String> contraseñas = cargarContraseñas();
@@ -98,6 +126,10 @@ public class DictionaryAttack {
         System.out.println("[✗] No se encontró la contraseña.");
     }
 
+    // Punto de entrada por linea de comandos.
+    // Uso: DictionaryAttack <URL_LOGIN> <USUARIO>
+    //   ej. http://localhost:3000/api/login admin  (vulnerable, sin limite)
+    //       http://localhost:3001/api/login admin  (patched, corta en 429)
     public static void main(String[] args) throws Exception {
 
         if (args.length != 2) {

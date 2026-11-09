@@ -2,6 +2,11 @@ package taller.owasp.domain;
 
 import jakarta.persistence.*;
 
+/**
+ * Entidad JPA de producto (tabla "products"), el catalogo de la tienda. Sus cuatro
+ * columnas (id, name, description, price) son las que la busqueda vulnerable de M1
+ * expone, y que el payload UNION SELECT debe imitar para colar datos de otra tabla.
+ */
 @Entity
 @Table(name = "products")
 public class Product {

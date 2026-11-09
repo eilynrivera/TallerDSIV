@@ -13,13 +13,30 @@ import taller.owasp.shared.AtaquesInyeccion;
 import taller.owasp.shared.AtaquesTaller;
 import taller.owasp.shared.Scoreboard;
 
+/**
+ * M6 CORREGIDO (B7): limite de intentos de login por IP (defensa contra fuerza bruta).
+ *
+ * Se registra en patched/SecurityConfig con addFilterBefore(..., Usuario...Filter), asi
+ * que corre antes del login. Lleva una ventana deslizante en memoria por IP: permite
+ * MAX_INTENTOS (5) POST /api/login por minuto; a partir del 6.o responde 429 (Too Many
+ * Requests) con Retry-After y ya no deja probar mas contrasenas en esa ventana. Esto es
+ * lo que detiene al DictionaryAttack, que en el perfil vulnerable recorreria la lista
+ * entera. Al no ser @Component no se registra solo: lo instancia SecurityConfig.
+ *
+ * La ventana vive en memoria (ConcurrentHashMap), asi que reiniciar el servidor la
+ * reinicia; en produccion esto iria en un almacen compartido (p. ej. Redis).
+ */
 public class RateLimitFilter extends OncePerRequestFilter {
 
-    private static final int MAX_INTENTOS = 5;
-    private static final long VENTANA_MS = 60_000;
+    private static final int MAX_INTENTOS = 5;      // intentos permitidos por ventana
+    private static final long VENTANA_MS = 60_000;  // duracion de la ventana: 1 minuto
 
+    // Ventana de intentos por IP. ConcurrentHashMap porque varias peticiones entran a la vez.
     private final ConcurrentHashMap<String, AttemptWindow> intentos = new ConcurrentHashMap<>();
 
+    // Por cada POST /api/login: cuenta el intento de esa IP, publica las cabeceras
+    // RateLimit-* y, si ya paso del limite dentro del minuto, corta con 429 en vez de
+    // dejar pasar la peticion al login.
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
@@ -73,6 +90,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
+    // Estado por IP: cuando empezo la ventana actual y cuantos intentos van en ella.
     private static class AttemptWindow {
         private long inicio = System.currentTimeMillis();
         private int cantidad = 0;

@@ -12,11 +12,17 @@ import jakarta.transaction.Transactional;
 import taller.owasp.domain.Product;
 import taller.owasp.repository.ProductRepository;
 
+/**
+ * Logica de busqueda de productos (M1 SQLi, segundo vector ademas del login). Igual que
+ * UserService, ofrece el par seguro/inseguro: el perfil vulnerable usa buscarInseguro(...)
+ * y el patched buscar(...).
+ */
 @Service
 @Transactional
 public class ProductService {
 
     private final ProductRepository productRepository;
+    // Solo lo usa la version vulnerable para ejecutar el SQL nativo concatenado.
     private final EntityManager entityManager;
 
     public ProductService(ProductRepository productRepository, EntityManager entityManager) {
@@ -29,8 +35,10 @@ public class ProductService {
         return productRepository.findByNameContainingIgnoreCase(name);
     }
 
-    // VULNERABLE (M1): el texto del usuario se pega dentro del SQL.
-    // Con q = ' UNION SELECT ... se pueden leer otras tablas.
+    // VULNERABLE (M1): EL HUECO. El texto de busqueda del usuario se pega dentro del SQL.
+    // Con q = ' UNION SELECT ... se pueden leer otras tablas (incluida secreto_ctf, el
+    // reto CTF). La correccion es buscar(...), que usa una consulta derivada de Spring
+    // Data: el valor viaja como parametro y el payload se busca como texto literal.
     // Las columnas se escriben en orden fijo para que el UNION tenga 4 columnas.
     // ILIKE (H2) ignora mayúsculas, igual que la versión segura (IgnoreCase), y no
     // agrega paréntesis: los payloads del plan (' UNION ... --) funcionan tal cual.
