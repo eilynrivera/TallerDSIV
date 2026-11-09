@@ -11,8 +11,10 @@
 | Puerto | Qué es | Tu rol |
 |---|---|---|
 | **`localhost:3000`** | La tienda **vulnerable** | **Es la que vas a arreglar** |
-| **`localhost:3001`** | La tienda **segura** (ya resuelta) | Es tu **referencia**: así debe quedar la 3000 |
+| **`localhost:3001`** | La tienda **segura** (ya resuelta) · **(TallerDSIV)** | Es tu **referencia**: así debe quedar la 3000 |
 | **`127.0.0.1:4000`** | El **sitio atacante** | Intenta leer tus datos de `:3000` |
+
+> **(TallerDSIV)** La tienda segura **`:3001`**, la carpeta **`patched/`** y el marcador **`dashboard.html`** pertenecen al proyecto completo **TallerDSIV**. En esta guía se usan solo como **referencia** de cómo debe quedar la tienda `:3000`.
 
 **La vulnerabilidad:** la tienda `:3000` responde a CORS reflejando *cualquier* origen y además permite credenciales (`allowCredentials(true)`). Si tenés sesión iniciada, un sitio ajeno (`:4000`) puede hacer un `fetch` *con tu cookie* y leer tu perfil y tus comentarios.
 
@@ -36,7 +38,7 @@
 src/main/java/taller/owasp/vulnerable/SecurityConfig.java
 ```
 
-> **Ojo:** es el de la carpeta **`vulnerable/`** (la tienda `:3000`), **no** el de `patched/`. La de `patched/` ya está resuelta y te sirve de referencia.
+> **Ojo:** es el de la carpeta **`vulnerable/`** (la tienda `:3000`), **no** el de `patched/` **(TallerDSIV)**. La de `patched/` ya está resuelta y te sirve de referencia.
 
 Dentro hay **dos puntos** que tocar: el método de CORS (al final del archivo) y la línea de `headers`.
 
@@ -62,13 +64,12 @@ config.setAllowedMethods(List.of("GET", "POST"));
 
 **Por qué:** con una lista blanca, el origen `http://127.0.0.1:4000` ya **no** está permitido. El navegador no recibe el `Access-Control-Allow-Origin` que lo autorice y **bloquea la lectura** de la respuesta.
 
-> **Fijate:** acá ponés los orígenes de **tu propia tienda** (`:3000`). La versión segura de referencia (`patched/`) hace exactamente lo mismo pero con los suyos (`:3001`). Cada tienda permite **su propio origen**, y a nadie más.
+> **Fijate:** acá ponés los orígenes de **tu propia tienda** (`:3000`). La versión segura de referencia (`patched/` **(TallerDSIV)**) hace exactamente lo mismo pero con los suyos (`:3001` **(TallerDSIV)**). Cada tienda permite **su propio origen**, y a nadie más.
 
 El método completo queda así:
 
 ```java
-@Bean("corsTaller")
-CorsConfigurationSource corsPermisivo() {
+private CorsConfigurationSource corsPermisivo() {
     CorsConfiguration config = new CorsConfiguration();
     config.setAllowedOrigins(List.of("http://localhost:3000", "http://127.0.0.1:3000"));
     config.setAllowedMethods(List.of("GET", "POST"));
@@ -80,6 +81,8 @@ CorsConfigurationSource corsPermisivo() {
     return source;
 }
 ```
+
+> **Ojo con la firma:** dejá el método tal cual está en el archivo (`private CorsConfigurationSource corsPermisivo()`). Solo cambiás las **dos líneas** de arriba; la firma del método no se toca.
 
 ---
 
@@ -132,11 +135,11 @@ import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
 
 ## 6. Qué debés ver una vez aplicado el parche ✓
 
-La meta: que la tienda `:3000` ahora bloquee el robo **igual que la `:3001`**.
+La meta: que la tienda `:3000` ahora bloquee el robo **igual que la `:3001`** **(TallerDSIV)**.
 
 | Dónde mirar | Antes (tu `:3000` sin parchar) | Después (tu `:3000` parchado) |
 |---|---|---|
-| **Página del atacante (`:4000`)** | *"Datos robados por el atacante: {perfil…, comentarios…}"* | *"El navegador bloqueó la lectura (CORS)…"* — **igual que contra `:3001`** |
+| **Página del atacante (`:4000`)** | *"Datos robados por el atacante: {perfil…, comentarios…}"* | *"El navegador bloqueó la lectura (CORS)…"* — **igual que contra `:3001`** **(TallerDSIV)** |
 | **DevTools → Console** | El `fetch` trae los datos | **Error de CORS** rojo: *"has been blocked by CORS policy… No 'Access-Control-Allow-Origin'…"* |
 | **DevTools → Network** (respuesta) | `Access-Control-Allow-Origin: http://127.0.0.1:4000` reflejado | Ya **no** se refleja el origen atacante; la lectura se bloquea |
 | **DevTools → Network** (cabeceras) | Faltan CSP, X-Frame-Options… | Aparecen **`Content-Security-Policy`** y **`X-Frame-Options`** |
@@ -145,13 +148,13 @@ La meta: que la tienda `:3000` ahora bloquee el robo **igual que la `:3001`**.
 
 **La idea clave de M4:** `allowedOriginPatterns("*")` + `allowCredentials(true)` es la combinación peligrosa. La defensa es una **lista blanca de orígenes** (solo el tuyo).
 
-> **Sobre el marcador `/dashboard.html`:** muestra la comparación general 3000 (✗ exito) vs 3001 (✓ bloqueado). La prueba concreta de que **tu** parche sirvió es que el atacante ya **no** puede leer los datos (el mensaje de CORS en la página del atacante y en la consola).
+> **Sobre el marcador `/dashboard.html` (TallerDSIV):** muestra la comparación general 3000 (✗ exito) vs 3001 (✓ bloqueado) **(TallerDSIV)**. La prueba concreta de que **tu** parche sirvió es que el atacante ya **no** puede leer los datos (el mensaje de CORS en la página del atacante y en la consola).
 
 ---
 
 ## Si algo sale raro
 
 - **No compila:** revisá que agregaste los 4 `import` y la constante `CSP`.
-- **El ataque sigue robando datos:** no reiniciaste la tienda `:3000`, o editaste el archivo equivocado (debe ser el de **`vulnerable/`**, no `patched/`).
+- **El ataque sigue robando datos:** no reiniciaste la tienda `:3000`, o editaste el archivo equivocado (debe ser el de **`vulnerable/`**, no `patched/` **(TallerDSIV)**).
 - **Dejaste la base rara:** reiniciar el perfil restaura los datos (están en memoria).
 - **Volver a dejar la tienda vulnerable** (para el siguiente grupo): `git checkout -- src/main/java/taller/owasp/vulnerable/SecurityConfig.java`.

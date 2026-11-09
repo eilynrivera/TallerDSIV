@@ -68,9 +68,10 @@
 <table class="ports">
   <tr><th>Puerto</th><th>Qué es</th><th>Tu rol</th></tr>
   <tr><td>localhost:3000</td><td>La tienda <b>vulnerable</b></td><td><b>Es la que vas a arreglar</b></td></tr>
-  <tr><td>localhost:3001</td><td>La tienda <b>segura</b> (ya resuelta)</td><td>Tu <b>referencia</b>: así debe quedar la 3000</td></tr>
+  <tr><td>localhost:3001</td><td>La tienda <b>segura</b> (ya resuelta) · <b>(TallerDSIV)</b></td><td>Tu <b>referencia</b>: así debe quedar la 3000</td></tr>
   <tr><td>127.0.0.1:4000</td><td>El <b>sitio atacante</b></td><td>Intenta leer tus datos de <code>:3000</code></td></tr>
 </table>
+<div class="note"><b>(TallerDSIV)</b> La tienda segura <code>:3001</code>, la carpeta <code>patched/</code> y el marcador <code>dashboard.html</code> pertenecen al proyecto completo <b>TallerDSIV</b>. En esta guía se usan solo como <b>referencia</b> de cómo debe quedar la tienda <code>:3000</code>.</div>
 <p><b>La vulnerabilidad:</b> la tienda <code>:3000</code> responde a CORS reflejando <i>cualquier</i> origen y además permite credenciales (<code>allowCredentials(true)</code>). Si tenés sesión iniciada, un sitio ajeno (<code>:4000</code>) puede hacer un <code>fetch</code> <i>con tu cookie</i> y leer tu perfil y tus comentarios.</p>
 
 <h2><span class="n">1</span>Primero: mirá el ataque funcionando</h2>
@@ -80,11 +81,11 @@
   <li>En la página del atacante aparece: <i>"Datos robados por el atacante: { perfil…, comentarios… }"</i>.</li>
   <li>En <b>DevTools (F12) → Network</b>, la respuesta de <code>/api/profile</code> trae <code>Access-Control-Allow-Origin</code> reflejando al atacante.</li>
 </ol>
-<div class="note">Ese es el "antes". Ahora vas a arreglar la tienda <code>:3000</code> para que ese botón <b>deje de robar datos</b>, igual que ya pasa en <code>:3001</code>.</div>
+<div class="note">Ese es el "antes". Ahora vas a arreglar la tienda <code>:3000</code> para que ese botón <b>deje de robar datos</b>, igual que ya pasa en <code>:3001</code> <b>(TallerDSIV)</b>.</div>
 
 <h2><span class="n">2</span>El archivo a modificar</h2>
 <div class="file">src/main/java/taller/owasp/vulnerable/SecurityConfig.java</div>
-<div class="note warn"><b>Ojo:</b> es el de la carpeta <b><code>vulnerable/</code></b> (la tienda <code>:3000</code>), <b>no</b> el de <code>patched/</code>. La de <code>patched/</code> ya está resuelta y te sirve de referencia.</div>
+<div class="note warn"><b>Ojo:</b> es el de la carpeta <b><code>vulnerable/</code></b> (la tienda <code>:3000</code>), <b>no</b> el de <code>patched/</code> <b>(TallerDSIV)</b>. La de <code>patched/</code> ya está resuelta y te sirve de referencia.</div>
 <p>Dentro hay <b>dos puntos</b> que tocar: el método de CORS (al final del archivo) y la línea de <code>headers</code>.</p>
 
 <h2><span class="n">3</span>Cambio A — CORS: de "cualquier origen" a lista blanca</h2>
@@ -96,10 +97,9 @@ config.setAllowedMethods(List.of("*"));</code></pre>
 <pre class="after"><code>config.setAllowedOrigins(List.of("http://localhost:3000", "http://127.0.0.1:3000"));
 config.setAllowedMethods(List.of("GET", "POST"));</code></pre>
 <div class="why"><b>Por qué:</b> con una lista blanca, el origen <code>http://127.0.0.1:4000</code> ya <b>no</b> está permitido. El navegador no recibe el <code>Access-Control-Allow-Origin</code> que lo autorice y <b>bloquea la lectura</b> de la respuesta.</div>
-<div class="note"><b>Fijate:</b> acá ponés los orígenes de <b>tu propia tienda</b> (<code>:3000</code>). La versión segura de referencia (<code>patched/</code>) hace lo mismo pero con los suyos (<code>:3001</code>). Cada tienda permite <b>su propio origen</b>, y a nadie más.</div>
+<div class="note"><b>Fijate:</b> acá ponés los orígenes de <b>tu propia tienda</b> (<code>:3000</code>). La versión segura de referencia (<code>patched/</code> <b>(TallerDSIV)</b>) hace lo mismo pero con los suyos (<code>:3001</code> <b>(TallerDSIV)</b>). Cada tienda permite <b>su propio origen</b>, y a nadie más.</div>
 <p>El método completo queda así:</p>
-<pre class="after"><code>@Bean("corsTaller")
-CorsConfigurationSource corsPermisivo() {
+<pre class="after"><code>private CorsConfigurationSource corsPermisivo() {
     CorsConfiguration config = new CorsConfiguration();
     config.setAllowedOrigins(List.of("http://localhost:3000", "http://127.0.0.1:3000"));
     config.setAllowedMethods(List.of("GET", "POST"));
@@ -110,6 +110,7 @@ CorsConfigurationSource corsPermisivo() {
     source.registerCorsConfiguration("/**", config);
     return source;
 }</code></pre>
+<div class="note warn"><b>Ojo con la firma:</b> dejá el método tal cual está en el archivo (<code>private CorsConfigurationSource corsPermisivo()</code>). Solo cambiás las <b>dos líneas</b> de arriba; la firma del método no se toca.</div>
 
 <h2><span class="n">4</span>Cambio B — Cabeceras de seguridad + CSP</h2>
 <p>En la cadena de <code>http</code>, buscá:</p>
@@ -138,10 +139,10 @@ import org.springframework.security.web.util.matcher.NegatedRequestMatcher;</cod
 </ol>
 
 <h2><span class="n">6</span>Qué debés ver una vez aplicado el parche <span class="ok">✓</span></h2>
-<p>La meta: que la tienda <code>:3000</code> ahora bloquee el robo <b>igual que la <code>:3001</code></b>.</p>
+<p>La meta: que la tienda <code>:3000</code> ahora bloquee el robo <b>igual que la <code>:3001</code></b> <b>(TallerDSIV)</b>.</p>
 <table>
   <tr><th>Dónde mirar</th><th>Antes (tu :3000 sin parchar)</th><th>Después (tu :3000 parchado)</th></tr>
-  <tr><td><b>Página del atacante (:4000)</b></td><td><i>"Datos robados por el atacante: {perfil…, comentarios…}"</i></td><td><span class="ok">"El navegador bloqueó la lectura (CORS)…"</span> — igual que contra :3001</td></tr>
+  <tr><td><b>Página del atacante (:4000)</b></td><td><i>"Datos robados por el atacante: {perfil…, comentarios…}"</i></td><td><span class="ok">"El navegador bloqueó la lectura (CORS)…"</span> — igual que contra :3001 <b>(TallerDSIV)</b></td></tr>
   <tr><td><b>DevTools → Console</b></td><td>El <code>fetch</code> trae los datos</td><td><span class="no">Error de CORS</span> rojo: <i>"has been blocked by CORS policy…"</i></td></tr>
   <tr><td><b>Network</b> (respuesta)</td><td><code>Access-Control-Allow-Origin: 127.0.0.1:4000</code> reflejado</td><td>Ya <b>no</b> se refleja el origen atacante; la lectura se bloquea</td></tr>
   <tr><td><b>Network</b> (cabeceras)</td><td>Faltan CSP, X-Frame-Options…</td><td>Aparecen <code>Content-Security-Policy</code> y <code>X-Frame-Options</code></td></tr>
@@ -149,12 +150,12 @@ import org.springframework.security.web.util.matcher.NegatedRequestMatcher;</cod
   <tr><td><b>Consola H2</b></td><td>Carga</td><td><b>Sigue cargando</b> (<code>frameOptions=sameOrigin</code>)</td></tr>
 </table>
 <div class="note key"><b>La idea clave de M4:</b> <code>allowedOriginPatterns("*")</code> + <code>allowCredentials(true)</code> es la combinación peligrosa. La defensa es una <b>lista blanca de orígenes</b> (solo el tuyo).</div>
-<div class="note"><b>Sobre el marcador <code>/dashboard.html</code>:</b> muestra la comparación general 3000 (<span class="no">✗ exito</span>) vs 3001 (<span class="ok">✓ bloqueado</span>). La prueba concreta de que <b>tu</b> parche sirvió es que el atacante ya <b>no</b> puede leer los datos (el mensaje de CORS en la página del atacante y en la consola).</div>
+<div class="note"><b>Sobre el marcador <code>/dashboard.html</code> (TallerDSIV):</b> muestra la comparación general 3000 (<span class="no">✗ exito</span>) vs 3001 (<span class="ok">✓ bloqueado</span>) <b>(TallerDSIV)</b>. La prueba concreta de que <b>tu</b> parche sirvió es que el atacante ya <b>no</b> puede leer los datos (el mensaje de CORS en la página del atacante y en la consola).</div>
 
 <h2>Si algo sale raro</h2>
 <ul>
   <li><b>No compila:</b> revisá que agregaste los 4 <code>import</code> y la constante <code>CSP</code>.</li>
-  <li><b>El ataque sigue robando datos:</b> no reiniciaste la tienda <code>:3000</code>, o editaste el archivo equivocado (debe ser el de <b><code>vulnerable/</code></b>, no <code>patched/</code>).</li>
+  <li><b>El ataque sigue robando datos:</b> no reiniciaste la tienda <code>:3000</code>, o editaste el archivo equivocado (debe ser el de <b><code>vulnerable/</code></b>, no <code>patched/</code> <b>(TallerDSIV)</b>).</li>
   <li><b>Dejaste la base rara:</b> reiniciar el perfil restaura los datos (están en memoria).</li>
   <li><b>Volver a dejar la tienda vulnerable</b> (para el siguiente grupo): <code>git checkout -- src/main/java/taller/owasp/vulnerable/SecurityConfig.java</code>.</li>
 </ul>

@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Guía M5 — CSRF</title>
+<style>
+  :root{
+    --bg:#ffffff; --fg:#1c2128; --muted:#57606a; --line:#d8dee4;
+    --card:#f6f8fa; --accent:#0969da; --accent-bg:#ddf4ff;
+    --bad:#cf222e; --bad-bg:#ffebe9; --good:#1a7f37; --good-bg:#dafbe1;
+    --warn:#9a6700; --warn-bg:#fff8c5;
+    --code-bg:#1c2128; --code-fg:#e6edf3;
+    --mono:ui-monospace,SFMono-Regular,"SF Mono",Consolas,"Liberation Mono",Menlo,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth;}
+  body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--sans);line-height:1.6;}
+  .wrap{max-width:860px;margin:0 auto;padding:40px 20px 80px;}
+  header.top{border-bottom:3px solid var(--accent);padding-bottom:18px;margin-bottom:22px;}
+  .tag{display:inline-block;background:var(--accent-bg);color:var(--accent);font-weight:700;
+       font-size:13px;letter-spacing:.04em;padding:4px 10px;border-radius:20px;text-transform:uppercase;}
+  h1{font-size:30px;margin:14px 0 6px;line-height:1.2;}
+  .sub{color:var(--muted);font-size:15px;margin:0;}
+  .guidenav{font-size:13.5px;margin:14px 0 0;color:var(--muted);}
+  .guidenav a{color:var(--accent);text-decoration:none;font-weight:600;}
+  .guidenav a:hover{text-decoration:underline;}
+  .guidenav .here{color:var(--fg);font-weight:700;}
+  nav.toc{background:var(--card);border:1px solid var(--line);border-radius:10px;
+          padding:14px 18px;margin:0 0 30px;}
+  nav.toc .toc-h{font-weight:700;font-size:12px;letter-spacing:.05em;text-transform:uppercase;
+                 color:var(--muted);margin-bottom:8px;}
+  nav.toc ol{margin:0;padding-left:20px;}
+  nav.toc li{margin:4px 0;}
+  nav.toc a{color:var(--accent);text-decoration:none;}
+  nav.toc a:hover{text-decoration:underline;}
+  h2{font-size:21px;margin:38px 0 12px;padding-top:8px;border-top:1px solid var(--line);scroll-margin-top:16px;}
+  h2 .n{display:inline-block;width:30px;height:30px;line-height:30px;text-align:center;
+        background:var(--accent);color:#fff;border-radius:50%;font-size:15px;margin-right:10px;vertical-align:middle;}
+  h3{font-size:16px;margin:22px 0 8px;}
+  p{margin:10px 0;}
+  code{font-family:var(--mono);background:var(--card);padding:1px 6px;border-radius:5px;font-size:.9em;}
+  pre{background:var(--code-bg);color:var(--code-fg);font-family:var(--mono);font-size:13.5px;
+      line-height:1.55;padding:16px 18px;border-radius:10px;overflow-x:auto;margin:12px 0;}
+  pre code{background:none;padding:0;color:inherit;font-size:inherit;}
+  pre.before{border-left:5px solid var(--bad);}
+  pre.after{border-left:5px solid var(--good);}
+  pre.props{border-left:5px solid var(--good);}
+  .lbl{font-weight:700;font-size:12px;letter-spacing:.03em;text-transform:uppercase;margin:16px 0 2px;}
+  .lbl.bad{color:var(--bad);} .lbl.good{color:var(--good);}
+  .note{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin:16px 0;}
+  .note.key{background:var(--accent-bg);border-color:#acd3ff;}
+  .note.warn{background:var(--warn-bg);border-color:#eedc82;}
+  .note.bad{background:var(--bad-bg);border-color:#ffc1bc;}
+  .why{background:var(--good-bg);border-left:5px solid var(--good);padding:12px 16px;border-radius:0 8px 8px 0;margin:12px 0;}
+  table{border-collapse:collapse;width:100%;margin:16px 0;font-size:14.5px;}
+  th,td{border:1px solid var(--line);padding:9px 12px;text-align:left;vertical-align:top;}
+  th{background:var(--card);font-weight:700;}
+  .ports td:first-child{font-family:var(--mono);font-weight:700;white-space:nowrap;}
+  .ok{color:var(--good);font-weight:700;} .no{color:var(--bad);font-weight:700;}
+  ol,ul{margin:10px 0;padding-left:24px;} li{margin:6px 0;}
+  .file{font-family:var(--mono);background:var(--code-bg);color:var(--code-fg);
+        padding:10px 14px;border-radius:8px;display:inline-block;font-size:13.5px;margin:6px 0;}
+  .top-link{font-size:12.5px;}
+  .top-link a{color:var(--muted);text-decoration:none;}
+  .top-link a:hover{text-decoration:underline;color:var(--accent);}
+  footer{margin-top:50px;padding-top:16px;border-top:1px solid var(--line);color:var(--muted);font-size:13px;}
+  @media print{
+    body{font-size:12px;} .wrap{padding:0;max-width:100%;}
+    pre{font-size:11px;} h2{break-after:avoid;} pre,table,.note,.why{break-inside:avoid;}
+    nav.toc,.top-link,.guidenav{display:none;}
+    a{color:inherit;text-decoration:none;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap" id="top">
+
+<header class="top">
+  <span class="tag">M5 · Demo guiada</span>
+  <h1>CSRF — Cross-Site Request Forgery</h1>
+  <p class="sub">Un sitio atacante le cambia el correo a tu cuenta <b>sin tu permiso</b>, solo porque tenías la sesión abierta. Vas a ver el ataque en la tienda <b>vulnerable</b> (<code>:3000</code>) y comprobar que la <b>segura</b> (<code>:3001</code>) lo bloquea con <b>403</b>. &nbsp;·&nbsp; ~6 min.</p>
+  <p class="guidenav">Guías del taller: <a href="M4-cors-estudiante.html">M4 — CORS</a> · <span class="here">M5 — CSRF (estás aquí)</span></p>
+</header>
+
+<nav class="toc">
+  <div class="toc-h">Contenido</div>
+  <ol>
+    <li><a href="#s0">El escenario (3 puertos)</a></li>
+    <li><a href="#s1">Mirá el ataque funcionando</a></li>
+    <li><a href="#s2">Errores comunes (leé esto antes)</a></li>
+    <li><a href="#s3">Cómo se defiende la :3001</a></li>
+    <li><a href="#s4">Repetir el ataque contra la :3001</a></li>
+    <li><a href="#s5">Qué debés ver</a></li>
+    <li><a href="#sraro">Si algo sale raro</a></li>
+  </ol>
+</nav>
+
+<h2 id="s0"><span class="n">0</span>El escenario (3 puertos)</h2>
+<table class="ports">
+  <tr><th>Puerto</th><th>Qué es</th><th>Su papel en M5</th></tr>
+  <tr><td>localhost:3000</td><td>La tienda <b>vulnerable</b></td><td>Donde el ataque <b>funciona</b></td></tr>
+  <tr><td>localhost:3001</td><td>La tienda <b>segura</b> (ya resuelta) · <b>(TallerDSIV)</b></td><td>Tu <b>referencia</b>: acá el ataque da <b>403</b></td></tr>
+  <tr><td>127.0.0.1:4000</td><td>El <b>sitio atacante</b></td><td>Hospeda <code>premio.html</code>, que dispara el CSRF</td></tr>
+</table>
+<div class="note"><b>(TallerDSIV)</b> La tienda segura <code>:3001</code>, la carpeta <code>patched/</code> y el marcador <code>dashboard.html</code> pertenecen al proyecto completo <b>TallerDSIV</b>. En esta guía se usan solo como <b>referencia</b>.</div>
+<p><b>La vulnerabilidad:</b> <code>POST /api/account/email</code> en <code>:3000</code> solo comprueba que <b>haya sesión</b>; no exige <b>token CSRF</b>, y la cookie va con <code>SameSite=None</code>. Por eso un formulario oculto en <code>premio.html</code> (<code>:4000</code>) puede enviar esa petición <b>con tu cookie</b> y cambiar tu correo sin que vos hagas nada.</p>
+<p class="top-link"><a href="#top">↑ Contenido</a></p>
+
+<h2 id="s1"><span class="n">1</span>Mirá el ataque funcionando</h2>
+<ol>
+  <li>Iniciá sesión en la tienda <code>http://localhost:3000</code> (<code>admin</code> / <code>admin123</code>).</li>
+  <li>Andá a <b>"Mi cuenta"</b> y mirá el <b>"Correo actual"</b>. Con el usuario <code>admin</code> arranca en <b><code>(vacío)</code></b>. <b>No escribas nada acá.</b></li>
+  <li>En otra pestaña abrí el <b>sitio atacante</b>. Dos caminos, los dos terminan igual:
+    <ul>
+      <li><b>Ruta A (mejor para narrar):</b> abrí la portada <code>http://127.0.0.1:4000</code> y hacé clic en el enlace <b>"Abrí el regalo"</b> → te lleva a <code>premio.html</code>.</li>
+      <li><b>Ruta B (atajo):</b> abrí directo <code>http://127.0.0.1:4000/premio.html</code>.</li>
+    </ul>
+  </li>
+  <li><code>premio.html</code> <b>se autoenvía al cargar</b> (no hay botón que tocar <i>dentro</i> de ella): dispara un <code>POST /api/account/email</code> a <code>:3000</code> llevando tu cookie de sesión.</li>
+  <li>Volvé a la pestaña de <code>:3000</code> y <b>recargá "Mi cuenta" (F5)</b>: el "Correo actual" pasó <b>solo</b> de <code>(vacío)</code> a <b><code>atacante@evil.test</code></b>.</li>
+  <li>El <b>marcador</b> registra <code>M5 · Cambio de correo sin consentimiento (CSRF)</code> como <span class="no">éxito</span> en <code>:3000</code>.</li>
+</ol>
+<div class="note key"><b>Narralo en voz alta:</b> la víctima solo hizo clic en algo inocente ("Abrí el regalo") y, sin saberlo, le cambiaron el correo. Funciona porque la cookie va forzada a <code>SameSite=None</code> — hoy Chrome usa <code>Lax</code> por defecto; el taller fuerza <code>None</code> <b>a propósito</b> para que el ataque sea posible.</div>
+<p class="top-link"><a href="#top">↑ Contenido</a></p>
+
+<h2 id="s2"><span class="n">2</span>Errores comunes (leé esto antes)</h2>
+<div class="note bad"><b>El ataque NO se escribe a mano. Se dispara solo.</b> Este es el malentendido #1.</div>
+<ul>
+  <li><b>No tipees el correo en "Mi cuenta".</b> Si escribís <code>atacante@evil.test</code> ahí y le das "Cambiar correo", es un cambio <b>legítimo del mismo sitio</b> (<code>Origin = localhost:3000</code>) → el marcador <b>no</b> cuenta. El ataque tiene que venir de <code>:4000</code>.</li>
+  <li><b>"Mi cuenta" no es donde se lanza el ataque.</b> Es solo el <b>verificador</b>: ahí mirás el correo antes y después. El ataque vive en <code>:4000/premio.html</code>.</li>
+  <li><b>El clic en "Abrí el regalo" no es el ataque.</b> Es solo <b>navegar</b> desde la portada del atacante hacia <code>premio.html</code>. El ataque es el <code>POST</code> que <code>premio.html</code> dispara <b>solo al cargar</b>.</li>
+  <li><b>Que el correo esté en <code>(vacío)</code> al inicio es normal.</b> El usuario <code>admin</code> se siembra sin correo. La prueba del ataque es que pase de <code>(vacío)</code> a <code>atacante@evil.test</code> <b>sin que vos escribas nada</b>.</li>
+</ul>
+<div class="why"><b>Por qué el marcador distingue:</b> el servidor solo registra M5 cuando la cabecera <code>Origin</code> de la petición <b>no</b> coincide con su propio origen (lo compara <code>AtaquesTaller.esCruzada</code>). El POST desde tu formulario trae <code>Origin: http://localhost:3000</code> (mismo sitio, no cuenta); el POST desde <code>premio.html</code> trae <code>Origin: http://127.0.0.1:4000</code> (cruzado, <b>sí</b> cuenta).</div>
+<p class="top-link"><a href="#top">↑ Contenido</a></p>
+
+<h2 id="s3"><span class="n">3</span>Cómo se defiende la :3001</h2>
+<p>La tienda segura <code>:3001</code> <b>(TallerDSIV)</b> bloquea el ataque con <b>tres piezas</b> (ya aplicadas en <code>patched/</code>):</p>
+
+<h3>a) Activar CSRF solo para <code>/api/account/**</code></h3>
+<div class="file">src/main/java/taller/owasp/patched/SecurityConfig.java</div>
+<div class="lbl bad">✗ Antes (vulnerable): sin token, cualquier POST con la cookie se acepta</div>
+<pre class="before"><code>.csrf(csrf -> csrf.disable());</code></pre>
+<div class="lbl good">✓ Después (corregido)</div>
+<pre class="after"><code>.csrf(csrf -> csrf
+        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+        .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler())
+        .ignoringRequestMatchers("/api/login", "/api/logout",
+                "/api/comments", "/h2-console/**"));</code></pre>
+<div class="why"><b>Por qué:</b> con CSRF activo, <code>POST /api/account/email</code> exige el token. El formulario del atacante no lo tiene → <b>403</b>. Se <b>ignora</b> login, logout, comentarios y H2 para no romper M1, M3 y M6, que mandan POST sin token a propósito.</div>
+
+<h3>b) Entregar el token al frontend legítimo</h3>
+<div class="file">src/main/java/taller/owasp/patched/CsrfController.java</div>
+<pre class="after"><code>@GetMapping("/api/csrf")
+public CsrfToken csrf(CsrfToken token) {
+    return token; // escribe la cookie XSRF-TOKEN; el front la reenvía en X-XSRF-TOKEN
+}</code></pre>
+<p>El frontend legítimo pide el token con <code>GET /api/csrf</code> y lo manda en la cabecera <code>X-XSRF-TOKEN</code>; por eso su petición <b>sí</b> pasa (200) y la del atacante no.</p>
+
+<h3>c) Cookie <code>SameSite=Lax</code> en vez de <code>None</code></h3>
+<div class="file">src/main/resources/application-patched.properties</div>
+<pre class="props"><code>server.servlet.session.cookie.same-site=lax</code></pre>
+<div class="why"><b>Por qué:</b> <code>SameSite=Lax</code> hace que el navegador <b>no</b> envíe la cookie de sesión en un POST que nace de otro sitio. Es una <b>segunda barrera</b> además del token.</div>
+<p class="top-link"><a href="#top">↑ Contenido</a></p>
+
+<h2 id="s4"><span class="n">4</span>Repetir el ataque contra la :3001</h2>
+<div class="note warn"><b>Ojo:</b> el <code>action</code> de <code>premio.html</code> está <b>fijo en <code>localhost:3000</code></b>. Para atacar la <code>:3001</code> necesitás una <b>copia</b> de <code>premio.html</code> cuyo <code>action</code> apunte a <code>http://localhost:3001/api/account/email</code> (o cambiar esa línea temporalmente).</div>
+<ol>
+  <li>Iniciá sesión en <code>http://localhost:3001</code> y mirá el correo en "Mi cuenta".</li>
+  <li>Abrí la copia de <code>premio.html</code> que apunta a <code>:3001</code>.</li>
+  <li>El <code>POST</code> del atacante recibe <span class="no">403</span> (no trae el token) y el correo <b>no cambia</b>. El frontend legítimo <b>sí</b> sigue funcionando (manda <code>X-XSRF-TOKEN</code>).</li>
+  <li>El marcador registra la defensa como <span class="ok">bloqueado</span> en <code>:3001</code>.</li>
+</ol>
+<p class="top-link"><a href="#top">↑ Contenido</a></p>
+
+<h2 id="s5"><span class="n">5</span>Qué debés ver</h2>
+<table>
+  <tr><th>Ataque</th><th>:3000 (vulnerable)</th><th>:3001 (segura) <b>(TallerDSIV)</b></th></tr>
+  <tr><td><code>premio.html</code> hace <code>POST /api/account/email</code></td><td>El correo <b>cambia</b> a <code>atacante@evil.test</code> (200)</td><td><span class="ok">403</span>: sin token CSRF, se rechaza</td></tr>
+  <tr><td>Cambio de correo desde el frontend legítimo</td><td>Funciona</td><td>Funciona (manda <code>X-XSRF-TOKEN</code>)</td></tr>
+  <tr><td>Marcador M5</td><td><span class="no">✗ éxito</span> (ataque logrado)</td><td><span class="ok">✓ bloqueado</span></td></tr>
+</table>
+<div class="note key"><b>La idea clave de M5:</b> sin token CSRF, <b>cualquier</b> POST que lleve la cookie se acepta. La defensa es el <b>token</b> (que el atacante no puede leer desde otro sitio) + la cookie <b>`SameSite=Lax`</b>.</div>
+<p class="top-link"><a href="#top">↑ Contenido</a></p>
+
+<h2 id="sraro">Si algo sale raro</h2>
+<ul>
+  <li><b>El correo sigue en <code>(vacío)</code> tras abrir <code>premio.html</code>:</b> ¿está corriendo el perfil <b>evil</b> (<code>:4000</code>)? ¿Estás en <b>Chrome normal</b>? La cookie es <code>SameSite=None</code>; si el navegador no la manda cross-site, el POST llega sin sesión y no cambia nada.</li>
+  <li><b>No aparece el marcador M5:</b> casi seguro escribiste el correo <b>a mano</b> (mismo sitio, no cuenta). Reintentá abriendo <code>:4000/premio.html</code> y recargando "Mi cuenta" sin tocar el campo.</li>
+  <li><b>El <code>403</code> no aparece en <code>:3001</code>:</b> la copia de <code>premio.html</code> sigue apuntando a <code>:3000</code>; revisá que el <code>action</code> diga <code>localhost:3001</code>.</li>
+  <li><b>Dejaste el correo cambiado:</b> reiniciar el perfil restaura los datos (están en memoria), o cambialo de vuelta desde "Mi cuenta".</li>
+</ul>
+<p class="top-link"><a href="#top">↑ Contenido</a></p>
+
+<footer>Taller OWASP · Módulo M5 (CSRF) · Guía del participante</footer>
+
+</div>
+</body>
+</html>
